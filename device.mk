@@ -73,6 +73,9 @@ DEVICE_PACKAGE_OVERLAYS += \
 PRODUCT_PACKAGES += \
     LineageSDKGinkgo
 
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/parts/init.xiaomiparts.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/init.xiaomiparts.rc
+
 # Shipping API level
 PRODUCT_SHIPPING_API_LEVEL := 28
 
