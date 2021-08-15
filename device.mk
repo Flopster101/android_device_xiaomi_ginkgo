@@ -77,6 +77,9 @@ PRODUCT_PACKAGES += \
     ApertureGinkgo \
     LineageSDKGinkgo
 
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/parts/init.xiaomiparts.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/init.xiaomiparts.rc
+
 # Shipping API level
 PRODUCT_SHIPPING_API_LEVEL := 28
 
