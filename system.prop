@@ -1,0 +1,3 @@
+# Display
+persist.lcd.cabc_mode=1
+persist.lcd.hbm_mode=0
