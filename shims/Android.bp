@@ -9,3 +9,9 @@ cc_library_shared {
     srcs: ["libwatermark_shim/libwatermark_shim.c"],
     vendor: true,
 }
+
+cc_library_shared {
+    name: "lib-imsvt",
+    srcs: ["lib-imsvt/lib-imsvt.c"],
+    vendor: true,
+}
