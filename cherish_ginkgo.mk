@@ -53,9 +53,6 @@ CHERISH_VANILLA := false
 # GApps Build
 WITH_GMS := true
 
-# Mini GApps
-TARGET_USES_MINI_GAPPS := true
-
 # Device identifier
 PRODUCT_NAME := cherish_ginkgo
 PRODUCT_DEVICE := ginkgo
