@@ -76,7 +76,6 @@
 
         <service
             android:name=".dirac.DiracTileService"
-	    android:exported="false"
             android:icon="@drawable/ic_headphone"
             android:label="@string/dirac_qs_tile_title"
             android:exported="true"
@@ -108,7 +107,6 @@
 
         <service
             android:name=".display.HbmTileService"
-	    android:exported="false"
             android:icon="@drawable/ic_hbm"
             android:label="@string/lcd_hbm_tile_title"
             android:exported="true"
@@ -120,7 +118,6 @@
 
         <service
             android:name=".display.CabcTileService"
-	    android:exported="false"
             android:icon="@drawable/ic_cabc"
             android:label="@string/lcd_cabc_title"
             android:exported="true"
@@ -146,7 +143,6 @@
         
         <service
             android:name="org.lineageos.settings.doze.DozeTileService"
-	    android:exported="false"
             android:icon="@drawable/ic_doze"
             android:label="@string/ambient_display_gestures_title"
             android:exported="true"
