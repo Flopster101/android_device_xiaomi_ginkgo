@@ -9,6 +9,9 @@ $(call inherit-product, device/xiaomi/sm6125-common/common.mk)
 
 DEVICE_PATH := device/xiaomi/ginkgo
 
+PRODUCT_PACKAGES += \
+    RemovePackagesGinkgo
+
 # AAPT
 PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xxhdpi
