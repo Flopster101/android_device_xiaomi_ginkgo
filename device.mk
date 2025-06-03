@@ -85,5 +85,8 @@ PRODUCT_SHIPPING_API_LEVEL := 28
 PRODUCT_SOONG_NAMESPACES += \
     $(DEVICE_PATH)
 
+# MiuiCamera
+$(call inherit-product, vendor/xiaomi/miuicamera/config.mk)
+
 # Inherit from vendor blobs
 $(call inherit-product, vendor/xiaomi/ginkgo/ginkgo-vendor.mk)
