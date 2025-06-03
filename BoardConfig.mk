@@ -21,6 +21,9 @@ TARGET_BOOTLOADER_BOARD_NAME := ginkgo
 # Display
 TARGET_SCREEN_DENSITY := 440
 
+# Camera
+PRODUCT_NO_CAMERA := true
+
 # Kernel
 TARGET_KERNEL_CONFIG += vendor/ginkgo.config
 
