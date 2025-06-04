@@ -1,1 +1,3 @@
 type kcal_dev, sysfs_type, fs_type;
+
+type vibrator_dev, sysfs_type, fs_type;
