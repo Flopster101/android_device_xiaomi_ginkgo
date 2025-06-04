@@ -1,3 +1,4 @@
 # Fingerprint
 persist.vendor.fingerprint.type=rear
 persist.vendor.fingerprint.detect_interaction=true
+ro.vendor.builtin_fm_antenna_support=1
