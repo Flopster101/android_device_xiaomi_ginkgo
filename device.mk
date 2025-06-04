@@ -73,6 +73,10 @@ DEVICE_PACKAGE_OVERLAYS += \
 PRODUCT_PACKAGES += \
     LineageSDKGinkgo
 
+# Parts
+PRODUCT_PACKAGES += \
+    XiaomiParts
+
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/parts/init.xiaomiparts.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/init.xiaomiparts.rc
 
