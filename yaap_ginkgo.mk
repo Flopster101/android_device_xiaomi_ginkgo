@@ -8,13 +8,18 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
-# Inherit some common Lineage stuff.
-$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
+# Inherit some common YAAP stuff
+$(call inherit-product, vendor/yaap/config/common_full_phone.mk)
 
 # Inherit from ginkgo device
 $(call inherit-product, device/xiaomi/ginkgo/device.mk)
 
-PRODUCT_NAME := lineage_ginkgo
+# YAAP Flags
+TARGET_SUPPORTS_64_BIT_APPS := true
+TARGET_ENABLE_BLUR := true
+TARGET_BUILD_GAPPS ?= true
+
+PRODUCT_NAME := yaap_ginkgo
 PRODUCT_DEVICE := ginkgo
 PRODUCT_MANUFACTURER := Xiaomi
 PRODUCT_BRAND := Xiaomi
