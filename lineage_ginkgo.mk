@@ -14,6 +14,10 @@ $(call inherit-product, vendor/lineage/config/common_full_phone.mk)
 # Inherit from ginkgo device
 $(call inherit-product, device/xiaomi/ginkgo/device.mk)
 
+# Derpfest flags
+DERPFEST_BUILD_TYPE := Community
+TARGET_SUPPORTS_QUICK_TAP := true
+
 PRODUCT_NAME := lineage_ginkgo
 PRODUCT_DEVICE := ginkgo
 PRODUCT_MANUFACTURER := Xiaomi
