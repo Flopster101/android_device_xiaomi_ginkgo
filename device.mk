@@ -83,6 +83,9 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_BROKEN_VERIFY_USES_LIBRARIES := true
 
+# Package overrides
+PRODUCT_PACKAGES += RemovePackages
+
 # Shipping API level
 PRODUCT_SHIPPING_API_LEVEL := 28
 
