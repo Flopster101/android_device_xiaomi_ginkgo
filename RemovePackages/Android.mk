@@ -9,7 +9,8 @@ LOCAL_OVERRIDES_PACKAGES := \
     Drive \
     EmergencyInfoGms \
     GoogleFeedback \
-    YouTube
+    YouTube \
+    PersonalSafety
 
 LOCAL_UNINSTALLABLE_MODULE := true
 LOCAL_CERTIFICATE := PRESIGNED
