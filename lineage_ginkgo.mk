@@ -17,6 +17,11 @@ $(call inherit-product, device/xiaomi/ginkgo/device.mk)
 # Retrofit
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
+# MIUI camera support
+TARGET_CAMERA_PACKAGE_NAME := com.android.camera
+TARGET_USES_MIUI_CAMERA := true
+TARGET_INCLUDES_MIUI_CAMERA := true
+
 PRODUCT_NAME := lineage_ginkgo
 PRODUCT_DEVICE := ginkgo
 PRODUCT_MANUFACTURER := Xiaomi
