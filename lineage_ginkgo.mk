@@ -14,6 +14,15 @@ $(call inherit-product, vendor/lineage/config/common_full_phone.mk)
 # Inherit from ginkgo device
 $(call inherit-product, device/xiaomi/ginkgo/device.mk)
 
+# Gapps support
+WITH_GMS ?= false
+
+ifeq ($(WITH_GMS),true)
+# Inherit from GMS product config
+$(call inherit-product-if-exists, vendor/google/gms/config.mk)
+$(call inherit-product-if-exists, vendor/google/pixel/config.mk)
+endif
+
 # Retrofit
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
