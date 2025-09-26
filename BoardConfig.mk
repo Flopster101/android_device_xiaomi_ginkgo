@@ -18,12 +18,14 @@ TARGET_OTA_ASSERT_DEVICE := ginkgo,willow
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := ginkgo
 
-#Compression
+ifeq ($(WITH_GMS),true)
+# Compression
 PRODUCT_FS_COMPRESSION := 1
 BOARD_EROFS_COMPRESSOR := lz4
 
 # Compression block length
 BOARD_EROFS_PCLUSTER_SIZE := 262144
+endif
 
 # Display
 TARGET_SCREEN_DENSITY := 440
@@ -36,8 +38,15 @@ TARGET_KERNEL_CONFIG += vendor/ginkgo.config
 
 # Retrofit
 PARTITIONS := system vendor
+ifeq ($(WITH_GMS),true)
 $(foreach p, $(call to-upper, $(PARTITIONS)), \
-    $(eval BOARD_$(p)IMAGE_FILE_SYSTEM_TYPE := erofs) \
+    $(eval BOARD_$(p)IMAGE_FILE_SYSTEM_TYPE := erofs))
+else
+$(eval BOARD_SYSTEMIMAGE_FILE_SYSTEM_TYPE := ext4)
+$(eval BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := erofs)
+endif
+
+$(foreach p, $(call to-upper, $(PARTITIONS)), \
     $(eval TARGET_COPY_OUT_$(p) := $(call to-lower, $(p))))
 
 BOARD_SUPER_PARTITION_SIZE := 6442450944

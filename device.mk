@@ -9,8 +9,10 @@ $(call inherit-product, device/xiaomi/sm6125-common/common.mk)
 
 DEVICE_PATH := device/xiaomi/ginkgo
 
+ifeq ($(WITH_GMS),true)
 PRODUCT_PACKAGES += \
     RemovePackagesGinkgo
+endif
 
 # AAPT
 PRODUCT_AAPT_CONFIG := normal
