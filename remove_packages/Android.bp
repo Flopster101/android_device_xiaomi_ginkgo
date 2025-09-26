@@ -2,13 +2,8 @@ cc_prebuilt_binary {
     name: "RemovePackagesGinkgo",
     overrides: [
         "AndroidAutoStubPrebuilt",
-        "EmergencyInfoGoogleNoUi",
         "Flipendo",
         "GoogleFeedback",
-        "SafetyHubSuwPrebuilt",
-        "KidsSupervisionStub",
-        "BetterBugStub",
-        "Tycho",
     ],
     strip: {
         none: true,
