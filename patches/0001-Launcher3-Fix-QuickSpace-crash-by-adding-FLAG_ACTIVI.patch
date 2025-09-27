@@ -1,0 +1,61 @@
+From 2635c586262ada7a891123b2f350f9c0e16efa66 Mon Sep 17 00:00:00 2001
+From: Flopster101 <nahuelgomez329@gmail.com>
+Date: Sat, 27 Sep 2025 19:38:42 -0300
+Subject: [PATCH] Launcher3: Fix QuickSpace crash by adding
+ FLAG_ACTIVITY_NEW_TASK
+
+The QuickSpace date tap was crashing with:
+
+09-27 19:22:08.609 11550 11550 E AndroidRuntime: FATAL EXCEPTION: main
+09-27 19:22:08.609 11550 11550 E AndroidRuntime: Process: com.android.launcher3, PID: 11550
+09-27 19:22:08.609 11550 11550 E AndroidRuntime: android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
+09-27 19:22:08.609 11550 11550 E AndroidRuntime:        at android.app.ContextImpl.startActivity(ContextImpl.java:1156)
+09-27 19:22:08.609 11550 11550 E AndroidRuntime:        at android.app.ContextImpl.startActivity(ContextImpl.java:1132)
+
+This patch adds the required flag and uses startActivitySafely() instead of direct
+context.startActivity() calls.
+
+Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
+---
+ .../launcher3/quickspace/QuickEventsController.java       | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/com/android/launcher3/quickspace/QuickEventsController.java b/src/com/android/launcher3/quickspace/QuickEventsController.java
+index da7384febd..88340379cf 100644
+--- a/src/com/android/launcher3/quickspace/QuickEventsController.java
++++ b/src/com/android/launcher3/quickspace/QuickEventsController.java
+@@ -152,8 +152,10 @@ public class QuickEventsController {
+             public void onClick(View view) {
+                 Intent calendarIntent = new Intent(Intent.ACTION_MAIN);
+                 calendarIntent.addCategory(Intent.CATEGORY_APP_CALENDAR);
++                calendarIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+ 
+                 Intent clockIntent = new Intent(AlarmClock.ACTION_SHOW_ALARMS);
++                clockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+ 
+                 PackageManager packageManager = mContext.getPackageManager();
+                 List<ResolveInfo> calendarApps = packageManager.queryIntentActivities(calendarIntent, PackageManager.MATCH_DEFAULT_ONLY);
+@@ -162,17 +164,17 @@ public class QuickEventsController {
+                 if (!calendarApps.isEmpty()) {
+                     calendarIntent.setPackage(calendarApps.get(0).activityInfo.packageName);
+                     try {
+-                        mContext.startActivity(calendarIntent);
++                        Launcher.getLauncher(view.getContext()).startActivitySafely(view, calendarIntent, null);
+                     } catch (ActivityNotFoundException e) {
+                     }
+                 } else if (!clockApps.isEmpty()) {
+                     clockIntent.setPackage(clockApps.get(0).activityInfo.packageName);
+                     try {
+-                        mContext.startActivity(clockIntent);
++                        Launcher.getLauncher(view.getContext()).startActivitySafely(view, clockIntent, null);
+                     } catch (ActivityNotFoundException e) {
+                     }
+                 } else {
+-                    Toast.makeText(mContext, R.string.intent_no_app_clock_found, Toast.LENGTH_SHORT).show();
++                    Toast.makeText(view.getContext(), R.string.intent_no_app_clock_found, Toast.LENGTH_SHORT).show();
+                 }
+             }
+         };
+-- 
+2.51.0
+
