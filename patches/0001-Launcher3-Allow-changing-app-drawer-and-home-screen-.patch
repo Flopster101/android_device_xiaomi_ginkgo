@@ -1,0 +1,212 @@
+From 98122902706c8c7434746201a95d2c019b510a32 Mon Sep 17 00:00:00 2001
+From: Flopster101 <nahuelgomez329@gmail.com>
+Date: Sun, 28 Sep 2025 16:06:24 -0300
+Subject: [PATCH] Launcher3: Allow changing app drawer and home screen grid
+ size from settings
+
+Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
+---
+ res/values/cr_strings.xml                     | 38 +++++++++++++++++++
+ res/xml/launcher_app_drawer_preferences.xml   | 10 +++++
+ res/xml/launcher_home_screen_preferences.xml  | 10 +++++
+ .../launcher3/InvariantDeviceProfile.java     | 24 ++++++++++++
+ src/com/android/launcher3/Utilities.java      | 14 +++++++
+ .../launcher3/settings/SettingsAppDrawer.java |  3 ++
+ .../settings/SettingsHomescreen.java          |  3 ++
+ 7 files changed, 102 insertions(+)
+
+diff --git a/res/values/cr_strings.xml b/res/values/cr_strings.xml
+index 194374197a..aeedd8940c 100644
+--- a/res/values/cr_strings.xml
++++ b/res/values/cr_strings.xml
+@@ -404,4 +404,42 @@
+     <string name="quick_event_weather_text_summary">Display current weather condition summary</string>
+ 
+     <string name="intent_no_app_clock_found">Unable to find calendar or clock activity</string>
++
++    <!-- Grid size settings -->
++    <string name="homescreen_grid_size_title">Home screen grid size</string>
++    <string name="homescreen_grid_size_summary">Number of icons per row on homescreen</string>
++    <string name="app_drawer_grid_size_title">App drawer grid size</string>
++    <string name="app_drawer_grid_size_summary">Number of icons per row in app drawer</string>
++    <string name="grid_size_3x3">3x3</string>
++    <string name="grid_size_4x4">4x4</string>
++    <string name="grid_size_4x5">4x5</string>
++    <string name="grid_size_5x5">5x5</string>
++    <string name="grid_size_5x6">5x6</string>
++    <string name="grid_size_6x5">6x5</string>
++    <string name="grid_size_6x6">6x6</string>
++    <string name="grid_size_auto">Auto (device default)</string>
++
++    <!-- Grid size arrays -->
++    <string-array name="grid_size_entries">
++        <item>Auto (device default)</item>
++        <item>3x3</item>
++        <item>4x4</item>
++        <item>4x5</item>
++        <item>5x5</item>
++        <item>5x6</item>
++        <item>6x5</item>
++        <item>6x6</item>
++    </string-array>
++
++    <string-array name="grid_size_values">
++        <item>auto</item>
++        <item>3x3</item>
++        <item>4x4</item>
++        <item>4x5</item>
++        <item>5x5</item>
++        <item>5x6</item>
++        <item>6x5</item>
++        <item>6x6</item>
++    </string-array>
++
+ </resources>
+diff --git a/res/xml/launcher_app_drawer_preferences.xml b/res/xml/launcher_app_drawer_preferences.xml
+index 9fb54b560d..3d64ab297f 100644
+--- a/res/xml/launcher_app_drawer_preferences.xml
++++ b/res/xml/launcher_app_drawer_preferences.xml
+@@ -65,4 +65,14 @@
+         settings:units="%"
+         android:defaultValue="100" />
+ 
++    <ListPreference
++        android:key="pref_app_drawer_grid_size"
++        android:title="@string/app_drawer_grid_size_title"
++        android:summary="@string/app_drawer_grid_size_summary"
++        android:persistent="true"
++        android:entries="@array/grid_size_entries"
++        android:entryValues="@array/grid_size_values"
++        android:defaultValue="auto"
++        launcher:iconSpaceReserved="false" />
++
+ </androidx.preference.PreferenceScreen>
+diff --git a/res/xml/launcher_home_screen_preferences.xml b/res/xml/launcher_home_screen_preferences.xml
+index 5d95aa3521..fe84759d3c 100644
+--- a/res/xml/launcher_home_screen_preferences.xml
++++ b/res/xml/launcher_home_screen_preferences.xml
+@@ -31,6 +31,16 @@
+             android:summaryOff="@string/settings_lock_layout_summary_off"
+             launcher:iconSpaceReserved="false" />
+ 
++        <ListPreference
++            android:key="pref_homescreen_grid_size"
++            android:title="@string/homescreen_grid_size_title"
++            android:summary="@string/homescreen_grid_size_summary"
++            android:persistent="true"
++            android:entries="@array/grid_size_entries"
++            android:entryValues="@array/grid_size_values"
++            android:defaultValue="auto"
++            launcher:iconSpaceReserved="false" />
++
+         <SwitchPreferenceCompat
+             android:key="pref_add_icon_to_home"
+             android:title="@string/auto_add_shortcuts_label"
+diff --git a/src/com/android/launcher3/InvariantDeviceProfile.java b/src/com/android/launcher3/InvariantDeviceProfile.java
+index af48736530..30b9df7aea 100644
+--- a/src/com/android/launcher3/InvariantDeviceProfile.java
++++ b/src/com/android/launcher3/InvariantDeviceProfile.java
+@@ -381,6 +381,10 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
+     }
+ 
+     public static String getCurrentGridName(Context context) {
++        String customGridSize = Utilities.getHomescreenGridSize(context);
++        if (!"auto".equals(customGridSize)) {
++            return customGridSize;
++        }
+         return LauncherPrefs.get(context).get(GRID_NAME);
+     }
+ 
+@@ -511,6 +515,9 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
+         numDatabaseAllAppsColumns = deviceType == TYPE_MULTI_DISPLAY
+                 ? closestProfile.numDatabaseAllAppsColumns : closestProfile.numAllAppsColumns;
+ 
++        // Apply custom app drawer grid size if set
++        applyCustomAppDrawerGridSize(context);
++
+         allAppsCellSize = displayOption.allAppsCellSize;
+         allAppsBorderSpaces = displayOption.allAppsBorderSpaces;
+         allAppsIconSize = displayOption.allAppsIconSizes;
+@@ -1644,4 +1651,21 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
+             return this;
+         }
+     }
++
++    private void applyCustomAppDrawerGridSize(Context context) {
++        String customGridSize = Utilities.getAppDrawerGridSize(context);
++        if (!"auto".equals(customGridSize)) {
++            try {
++                // Parse grid size (e.g., "4x4" -> 4 columns)
++                String[] parts = customGridSize.split("x");
++                if (parts.length >= 1) {
++                    int columns = Integer.parseInt(parts[0]);
++                    numAllAppsColumns = columns;
++                    numDatabaseAllAppsColumns = columns;
++                }
++            } catch (NumberFormatException e) {
++                // Invalid format, keep default
++            }
++        }
++    }
+ }
+diff --git a/src/com/android/launcher3/Utilities.java b/src/com/android/launcher3/Utilities.java
+index 14af874046..abd6f3501e 100644
+--- a/src/com/android/launcher3/Utilities.java
++++ b/src/com/android/launcher3/Utilities.java
+@@ -196,6 +196,10 @@ public final class Utilities {
+     public static final String KEY_SHOW_QUICKSPACE_WEATHER_CITY = "pref_quickspace_weather_city";
+     public static final String KEY_SHOW_QUICKSPACE_WEATHER_TEXT = "pref_quickspace_weather_text";
+ 
++    // Grid size preferences
++    public static final String KEY_HOMESCREEN_GRID_SIZE = "pref_homescreen_grid_size";
++    public static final String KEY_APP_DRAWER_GRID_SIZE = "pref_app_drawer_grid_size";
++
+     /**
+      * Returns true if theme is dark.
+      */
+@@ -1201,4 +1205,14 @@ public final class Utilities {
+         SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
+         return prefs.getBoolean(KEY_SHOW_QUICKSPACE_WEATHER_TEXT, true);
+     }
++
++    public static String getHomescreenGridSize(Context context) {
++        SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
++        return prefs.getString(KEY_HOMESCREEN_GRID_SIZE, "auto");
++    }
++
++    public static String getAppDrawerGridSize(Context context) {
++        SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
++        return prefs.getString(KEY_APP_DRAWER_GRID_SIZE, "auto");
++    }
+ }
+diff --git a/src/com/android/launcher3/settings/SettingsAppDrawer.java b/src/com/android/launcher3/settings/SettingsAppDrawer.java
+index 142b38df5a..8b8c1dba13 100644
+--- a/src/com/android/launcher3/settings/SettingsAppDrawer.java
++++ b/src/com/android/launcher3/settings/SettingsAppDrawer.java
+@@ -120,6 +120,9 @@ public class SettingsAppDrawer extends CollapsingToolbarBaseActivity
+             case Utilities.KEY_DRAWER_SCROLLBAR:
+                 LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
+                 break;
++            case Utilities.KEY_APP_DRAWER_GRID_SIZE:
++                LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
++                break;
+             default:
+                 break;
+         }
+diff --git a/src/com/android/launcher3/settings/SettingsHomescreen.java b/src/com/android/launcher3/settings/SettingsHomescreen.java
+index dfcc40ed16..f09ac191c4 100644
+--- a/src/com/android/launcher3/settings/SettingsHomescreen.java
++++ b/src/com/android/launcher3/settings/SettingsHomescreen.java
+@@ -136,6 +136,9 @@ public class SettingsHomescreen extends CollapsingToolbarBaseActivity
+             case Utilities.KEY_SHOW_QUICKSPACE_WEATHER_TEXT:
+                 LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
+                 break;
++            case Utilities.KEY_HOMESCREEN_GRID_SIZE:
++                LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
++                break;
+             default:
+                 break;
+         }
+-- 
+2.51.0
+

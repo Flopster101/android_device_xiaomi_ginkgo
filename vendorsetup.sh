@@ -28,3 +28,13 @@ if ! grep -q "FLAG_ACTIVITY_NEW_TASK" "packages/apps/Launcher3/src/com/android/l
   )
   echo "Launcher3 Quickspace crash fix applied successfully."
 fi
+
+if ! grep -q "Grid size settings" "packages/apps/Launcher3/res/values/cr_strings.xml"; then
+  echo "Applying Launcher3 grid size patch..."
+
+  (
+    cd "packages/apps/Launcher3"
+    git am -3 "$DEVICE_ROOT/patches/0001-Launcher3-Allow-changing-app-drawer-and-home-screen-.patch"
+  )
+  echo "Launcher3 grid size patch applied successfully."
+fi
