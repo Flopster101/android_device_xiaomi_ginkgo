@@ -31,3 +31,11 @@ if ! grep -q "Grid size settings" "packages/apps/Launcher3/res/values/cr_strings
     git am -3 "$SCRIPTS_ROOT/patches/0001-Launcher3-Allow-changing-app-drawer-and-home-screen-.patch"
   )
 fi
+
+echo "-> Checking for SystemUI patches to apply..."
+if ! grep -q "bottom|start" "frameworks/base/packages/SystemUI/res/layout/status_bar_wifi_group_inner.xml"; then
+  (
+    cd "frameworks/base"
+    git am -3 "$SCRIPTS_ROOT/patches/0001-WifiStandard-Move-standard-icon-to-the-left-side.patch"
+  )
+fi

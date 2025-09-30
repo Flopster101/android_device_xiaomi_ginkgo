@@ -1,0 +1,52 @@
+From 0f7f2038aa4c782b17acc4c73e3cf8db5577cd84 Mon Sep 17 00:00:00 2001
+From: Erfan Abdi <erfangplus@gmail.com>
+Date: Mon, 29 Sep 2025 22:51:34 -0300
+Subject: [PATCH] WifiStandard: Move standard icon to the left side
+
+* Taken from: https://github.com/crdroidandroid/android_frameworks_base/commit/3d0826fd53bca2d71d6eae83c68a990bf795025f
+
+Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
+---
+ .../SystemUI/res/layout/status_bar_wifi_group_inner.xml   | 1 +
+ .../android/systemui/statusbar/WifiStandardImageView.kt   | 8 ++------
+ 2 files changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/packages/SystemUI/res/layout/status_bar_wifi_group_inner.xml b/packages/SystemUI/res/layout/status_bar_wifi_group_inner.xml
+index 61e142db1d80..2b9dee3132be 100644
+--- a/packages/SystemUI/res/layout/status_bar_wifi_group_inner.xml
++++ b/packages/SystemUI/res/layout/status_bar_wifi_group_inner.xml
+@@ -68,6 +68,7 @@
+                 android:layout_width="@dimen/status_bar_wifi_signal_size" />
+             <com.android.systemui.statusbar.WifiStandardImageView
+                 android:id="@+id/wifi_standard"
++                android:layout_gravity="bottom|start"
+                 android:layout_height="@dimen/status_bar_wifi_signal_size"
+                 android:layout_width="@dimen/status_bar_wifi_signal_size" />
+         </FrameLayout>
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/WifiStandardImageView.kt b/packages/SystemUI/src/com/android/systemui/statusbar/WifiStandardImageView.kt
+index 80e9f46a08f4..1e2690847a09 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/WifiStandardImageView.kt
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/WifiStandardImageView.kt
+@@ -94,17 +94,13 @@ class WifiStandardImageView @JvmOverloads constructor(
+         post {
+             if (!currWifiStandardEnabled || currWifiStandard < 4) {
+                 visibility = GONE
+-                layoutParams = (layoutParams as MarginLayoutParams).apply {
+-                    marginEnd = 0
+-                }
+             } else {
+                 val drawableId = getDrawableForWifiStandard()
+                 if (drawableId > 0) {
+                     setImageResource(drawableId)
+                     visibility = VISIBLE
+-                    layoutParams = (layoutParams as MarginLayoutParams).apply {
+-                        marginEnd = resources.getDimensionPixelSize(R.dimen.status_bar_airplane_spacer_width)
+-                    }
++                } else {
++                    visibility = GONE
+                 }
+             }
+         }
+-- 
+2.51.0
+
