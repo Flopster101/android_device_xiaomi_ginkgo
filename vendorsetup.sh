@@ -1,5 +1,5 @@
 #!/bin/bash
-DEVICE_ROOT="$(realpath device/xiaomi/ginkgo)"
+SCRIPTS_ROOT="$(realpath device/xiaomi/ginkgo)"
 
 if [ -f "vendor/google/pixel/Android.bp" ] && grep -q "SystemUIClocks-BigNum" "vendor/google/pixel/Android.bp"; then
   echo "Removing SystemUIClock modules from vendor/google/pixel..."
@@ -14,7 +14,7 @@ if ! grep -q "build_maintainer" "packages/apps/Settings/res/values/cm_strings.xm
 
   (
       cd "packages/apps/Settings"
-      git am -3 "$DEVICE_ROOT/patches/0001-Settings-Add-Maintainer-string-into-device-info.patch"
+      git am -3 "$SCRIPTS_ROOT/patches/0001-Settings-Add-Maintainer-string-into-device-info.patch"
   )
   echo "Settings maintainer patch applied successfully."
 fi
@@ -24,7 +24,7 @@ if ! grep -q "FLAG_ACTIVITY_NEW_TASK" "packages/apps/Launcher3/src/com/android/l
 
   (
     cd "packages/apps/Launcher3"
-    git am -3 "$DEVICE_ROOT/patches/0001-Launcher3-Fix-QuickSpace-crash-by-adding-FLAG_ACTIVI.patch"
+    git am -3 "$SCRIPTS_ROOT/patches/0001-Launcher3-Fix-QuickSpace-crash-by-adding-FLAG_ACTIVI.patch"
   )
   echo "Launcher3 Quickspace crash fix applied successfully."
 fi
@@ -34,7 +34,7 @@ if ! grep -q "Grid size settings" "packages/apps/Launcher3/res/values/cr_strings
 
   (
     cd "packages/apps/Launcher3"
-    git am -3 "$DEVICE_ROOT/patches/0001-Launcher3-Allow-changing-app-drawer-and-home-screen-.patch"
+    git am -3 "$SCRIPTS_ROOT/patches/0001-Launcher3-Allow-changing-app-drawer-and-home-screen-.patch"
   )
   echo "Launcher3 grid size patch applied successfully."
 fi
