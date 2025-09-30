@@ -39,3 +39,10 @@ if ! grep -q "bottom|start" "frameworks/base/packages/SystemUI/res/layout/status
     git am -3 "$SCRIPTS_ROOT/patches/0001-WifiStandard-Move-standard-icon-to-the-left-side.patch"
   )
 fi
+
+if ! grep -q "convertLteToFourg" "frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDialogController.java"; then
+  (
+    cd "frameworks/base"
+    git am -3 "$SCRIPTS_ROOT/patches/0001-SystemUI-Apply-forced-4G-to-Quick-Settings-tile-too.patch"
+  )
+fi

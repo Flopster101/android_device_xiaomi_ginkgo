@@ -1,0 +1,221 @@
+From 47060e002124bfd889c9b29efe1503c17196723d Mon Sep 17 00:00:00 2001
+From: Flopster101 <nahuelgomez329@gmail.com>
+Date: Mon, 29 Sep 2025 23:16:55 -0300
+Subject: [PATCH] SystemUI: Apply forced 4G to Quick Settings tile too
+
+This way, when crDroid's "4G icon" setting is enabled, it applies
+consistently across the UI.
+
+Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
+---
+ .../dialog/InternetDialogController.java      | 44 ++++++++++++++++++-
+ .../connectivity/MobileSignalController.java  | 23 ++++++++++
+ .../ui/viewmodel/InternetTileViewModel.kt     | 24 ++++++++--
+ 3 files changed, 85 insertions(+), 6 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDialogController.java b/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDialogController.java
+index 139d6467b1a8..9654712c0382 100644
+--- a/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDialogController.java
++++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDialogController.java
+@@ -47,6 +47,8 @@ import android.os.Handler;
+ import android.os.UserHandle;
+ import android.provider.Settings;
+ import android.sysprop.TelephonyProperties;
++import com.android.systemui.tuner.TunerService;
++import com.android.systemui.Dependency;
+ import android.telephony.AccessNetworkConstants;
+ import android.telephony.NetworkRegistrationInfo;
+ import android.telephony.ServiceState;
+@@ -121,7 +123,7 @@ import javax.inject.Inject;
+ /**
+  * Controller for Internet Dialog.
+  */
+-public class InternetDialogController implements AccessPointController.AccessPointCallback {
++public class InternetDialogController implements AccessPointController.AccessPointCallback, TunerService.Tunable {
+ 
+     private static final String TAG = "InternetDialogController";
+     private static final String ACTION_WIFI_SCANNING_SETTINGS =
+@@ -137,6 +139,8 @@ public class InternetDialogController implements AccessPointController.AccessPoi
+     private static final String SETTINGS_EXTRA_SHOW_FRAGMENT_ARGUMENTS =
+             ":settings:show_fragment_args";
+     private static final String AUTO_DATA_SWITCH_SETTING_R_ID = "auto_data_switch";
++    private static final String SHOW_FOURG_ICON =
++            "system:" + Settings.System.SHOW_FOURG_ICON;
+     public static final Drawable EMPTY_DRAWABLE = new ColorDrawable(Color.TRANSPARENT);
+     public static final int NO_CELL_DATA_TYPE_ICON = 0;
+     private static final int SUBTITLE_TEXT_WIFI_IS_OFF = R.string.wifi_is_off;
+@@ -178,6 +182,7 @@ public class InternetDialogController implements AccessPointController.AccessPoi
+     private Handler mHandler;
+     private Handler mWorkerHandler;
+     private MobileMappings.Config mConfig = null;
++    private boolean mShowFourgIcon = false;
+     private Executor mExecutor;
+     private AccessPointController mAccessPointController;
+     private IntentFilter mConnectionStateFilter;
+@@ -345,6 +350,8 @@ public class InternetDialogController implements AccessPointController.AccessPoi
+             Log.d(TAG, "Init, SubId: " + mDefaultDataSubId);
+         }
+         mConfig = MobileMappings.Config.readConfig(mContext);
++        TunerService tunerService = Dependency.get(TunerService.class);
++        tunerService.addTunable(this, SHOW_FOURG_ICON);
+         mTelephonyManager = mTelephonyManager.createForSubscriptionId(mDefaultDataSubId);
+         mSubIdTelephonyManagerMap.put(mDefaultDataSubId, mTelephonyManager);
+         registerInternetTelephonyCallback(mTelephonyManager, mDefaultDataSubId);
+@@ -381,6 +388,17 @@ public class InternetDialogController implements AccessPointController.AccessPoi
+         mPolicyManager.unregisterListener(mPolicyListener);
+     }
+ 
++    @Override
++    public void onTuningChanged(String key, String newValue) {
++        switch (key) {
++            case SHOW_FOURG_ICON:
++                mShowFourgIcon = TunerService.parseIntegerSwitch(newValue, false);
++                break;
++            default:
++                break;
++        }
++    }
++
+     /**
+      * This is to generate and register the new callback to Telephony for uncached subscription id,
+      * then cache it. Telephony also cached this callback into
+@@ -775,8 +793,14 @@ public class InternetDialogController implements AccessPointController.AccessPoi
+             resId = iconGroup.dataContentDescription;
+         }
+ 
+-        return resId != 0
++        String description = resId != 0
+                 ? SubscriptionManager.getResourcesForSubId(context, subId).getString(resId) : "";
++
++        if (mShowFourgIcon && !description.isEmpty()) {
++            description = convertLteToFourg(description);
++        }
++
++        return description;
+     }
+ 
+     private String getMobileSummary(Context context, String networkTypeDescription, int subId) {
+@@ -1620,4 +1644,20 @@ public class InternetDialogController implements AccessPointController.AccessPoi
+                 wifiEntry.getWifiConfiguration());
+         return intent;
+     }
++
++    private String convertLteToFourg(String description) {
++        if (description == null) {
++            return null;
++        }
++
++        // Convert LTE to 4G in the text
++        if (description.contains("LTE")) {
++            description = description.replace("LTE", "4G");
++        }
++        if (description.contains("LTE+")) {
++            description = description.replace("LTE+", "4G+");
++        }
++
++        return description;
++    }
+ }
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/connectivity/MobileSignalController.java b/packages/SystemUI/src/com/android/systemui/statusbar/connectivity/MobileSignalController.java
+index d0c64d616280..2ef39f2d3365 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/connectivity/MobileSignalController.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/connectivity/MobileSignalController.java
+@@ -80,6 +80,7 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
+             "system:" + Settings.System.SHOW_FOURG_ICON;
+ 
+     private boolean mDataDisabledIcon;
++    private boolean mShowFourgIcon;
+ 
+     private MobileIconGroup mDefaultIcons;
+     private Config mConfig;
+@@ -183,6 +184,7 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
+                 updateTelephony();
+                 break;
+             case SHOW_FOURG_ICON:
++                mShowFourgIcon = TunerService.parseIntegerSwitch(newValue, false);
+                 mConfig = Config.readConfig(mContext);
+                 setConfiguration(mConfig);
+                 notifyListeners();
+@@ -306,6 +308,9 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
+                 dataContentDescriptionHtml.toString(), 0).toString();
+         if (mCurrentState.inetCondition == 0) {
+             dataContentDescription = mContext.getString(R.string.data_connection_no_internet);
++        } else if (mShowFourgIcon) {
++            dataContentDescription = convertLteToFourg(dataContentDescription);
++            dataContentDescriptionHtml = convertLteToFourg(dataContentDescriptionHtml);
+         }
+ 
+         int iconId = mCurrentState.getNetworkTypeIcon(mContext);
+@@ -651,4 +656,22 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
+                     + " icon=" + icon;
+         }
+     }
++
++    private CharSequence convertLteToFourg(CharSequence dataContentDescription) {
++        if (dataContentDescription == null) {
++            return null;
++        }
++
++        String description = dataContentDescription.toString();
++
++        // Convert LTE to 4G in the text
++        if (description.contains("LTE")) {
++            description = description.replace("LTE", "4G");
++        }
++        if (description.contains("LTE+")) {
++            description = description.replace("LTE+", "4G+");
++        }
++
++        return description;
++    }
+ }
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt b/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
+index 352413ee568a..f16c88e4df27 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
+@@ -92,17 +92,22 @@ constructor(
+             if (it == null) {
+                 flowOf(null)
+             } else {
+-                combine(it.isRoaming, it.networkTypeIconGroup) { isRoaming, networkTypeIconGroup ->
++                combine(it.isRoaming, it.networkTypeIconGroup, it.shouldShowFourgIcon) { isRoaming, networkTypeIconGroup, shouldShowFourgIcon ->
+                     val cd = loadString(networkTypeIconGroup.contentDescription)
++                    val convertedCd = if (shouldShowFourgIcon && cd != null) {
++                        convertLteToFourg(cd.toString())
++                    } else {
++                        cd
++                    }
+                     if (isRoaming) {
+                         val roaming = context.getString(R.string.data_connection_roaming)
+-                        if (cd != null) {
+-                            context.getString(R.string.mobile_data_text_format, roaming, cd)
++                        if (convertedCd != null) {
++                            context.getString(R.string.mobile_data_text_format, roaming, convertedCd)
+                         } else {
+                             roaming
+                         }
+                     } else {
+-                        cd
++                        convertedCd
+                     }
+                 }
+             }
+@@ -267,4 +272,15 @@ constructor(
+                 is ContentDescription.Resource -> Text.Resource(this.res)
+             }
+     }
++
++    private fun convertLteToFourg(description: String): String {
++        // Convert LTE to 4G in the text
++        if (description.contains("LTE")) {
++            return description.replace("LTE", "4G")
++        }
++        if (description.contains("LTE+")) {
++            return description.replace("LTE+", "4G+")
++        }
++        return description
++    }
+ }
+-- 
+2.51.0
+
