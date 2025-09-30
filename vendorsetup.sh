@@ -17,6 +17,13 @@ if ! grep -q "build_maintainer" "packages/apps/Settings/res/values/cm_strings.xm
   )
 fi
 
+if ! grep -q "lso check system setting for 4G icon preference" "packages/apps/Settings/src/com/android/settings/network/telephony/NetworkSelectSettings.java"; then
+  (
+    cd "packages/apps/Settings"
+    git am -3 "$SCRIPTS_ROOT/patches/0001-Settings-Apply-forced-4G-icon-consistently.patch"
+  )
+fi
+
 echo "-> Checking for Launcher3 patches to apply..."
 if ! grep -q "FLAG_ACTIVITY_NEW_TASK" "packages/apps/Launcher3/src/com/android/launcher3/quickspace/QuickEventsController.java"; then
   (
