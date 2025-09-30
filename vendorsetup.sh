@@ -53,3 +53,10 @@ if ! grep -q "convertLteToFourg" "frameworks/base/packages/SystemUI/src/com/andr
     git am -3 "$SCRIPTS_ROOT/patches/SystemUI/0001-SystemUI-Apply-forced-4G-to-Quick-Settings-tile-too.patch"
   )
 fi
+
+if ! grep -q "Cache height to prevent micro-adjustments during font metric changes" "frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/Clock.java"; then
+  (
+    cd "frameworks/base"
+    git am -3 "$SCRIPTS_ROOT/patches/SystemUI/0001-SystemUI-Cache-clock-height.patch"
+  )
+fi
