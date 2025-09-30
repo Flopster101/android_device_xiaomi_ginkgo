@@ -12,8 +12,8 @@ fi
 echo "-> Checking for Settings patches to apply..."
 if ! grep -q "build_maintainer" "packages/apps/Settings/res/values/cm_strings.xml"; then
   (
-      cd "packages/apps/Settings"
-      git am -3 "$SCRIPTS_ROOT/patches/0001-Settings-Add-Maintainer-string-into-device-info.patch"
+    cd "packages/apps/Settings"
+    git am -3 "$SCRIPTS_ROOT/patches/0001-Settings-Add-Maintainer-string-into-device-info.patch"
   )
 fi
 
