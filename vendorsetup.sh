@@ -60,3 +60,12 @@ if ! grep -q "Cache height to prevent micro-adjustments during font metric chang
     git am -3 "$SCRIPTS_ROOT/patches/SystemUI/0001-SystemUI-Cache-clock-height.patch"
   )
 fi
+
+echo "-> Checking for vendor/google patches to apply..."
+if grep -q "GoogleSans-" "vendor/google/pixel/pixel-vendor.mk"; then
+  (
+    cd "vendor/google/pixel"
+    git am -3 "$SCRIPTS_ROOT/patches/vendor_google/0001-pixel-Remove-Google-Sans-UI-fonts.patch"
+  )
+fi
+
