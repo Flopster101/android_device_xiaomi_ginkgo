@@ -58,8 +58,9 @@ BOARD_SUPER_PARTITION_SYSTEM_DEVICE_SIZE := 4831838208
 BOARD_SUPER_PARTITION_VENDOR_DEVICE_SIZE := 1610612736
 BOARD_SUPER_PARTITION_METADATA_DEVICE := system
 
-$(foreach p, $(call to-upper, $(PARTITIONS)), \
-    $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE := 100000000)) # 100 MB
+# $(foreach p, $(call to-upper, $(PARTITIONS)), \
+#     $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE := 100000000)) # 100 MB
+-include vendor/lineage/config/BoardConfigReservedSize.mk
 
 # Partitions
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
