@@ -69,3 +69,10 @@ if grep -q "GoogleSans-" "vendor/google/pixel/pixel-vendor.mk"; then
   )
 fi
 
+echo "-> Checking for vendor/lineage patches to apply..."
+if grep -q "google-sans-" "vendor/lineage/overlay/common/frameworks/base/core/res/res/values/config.xml"; then
+  (
+    cd "vendor/lineage"
+    git am -3 "$SCRIPTS_ROOT/patches/vendor_crdroid/0001-crdroid-overlay-Drop-Google-Sans-as-UI-font.patch"
+  )
+fi
