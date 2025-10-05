@@ -25,13 +25,6 @@ if ! grep -q "lso check system setting for 4G icon preference" "packages/apps/Se
 fi
 
 echo "-> Checking for Launcher3 patches to apply..."
-if ! grep -q "FLAG_ACTIVITY_NEW_TASK" "packages/apps/Launcher3/src/com/android/launcher3/quickspace/QuickEventsController.java"; then
-  (
-    cd "packages/apps/Launcher3"
-    git am -3 "$SCRIPTS_ROOT/patches/Launcher3/0001-Launcher3-Fix-QuickSpace-crash-by-adding-FLAG_ACTIVI.patch"
-  )
-fi
-
 if ! grep -q "Grid size settings" "packages/apps/Launcher3/res/values/cr_strings.xml"; then
   (
     cd "packages/apps/Launcher3"

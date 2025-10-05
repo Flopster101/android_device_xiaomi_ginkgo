@@ -1,6 +1,6 @@
-From 98122902706c8c7434746201a95d2c019b510a32 Mon Sep 17 00:00:00 2001
+From d2c3dc0f830016f68f35980611821e392899afd2 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
-Date: Sun, 28 Sep 2025 16:06:24 -0300
+Date: Sun, 5 Oct 2025 14:28:22 -0300
 Subject: [PATCH] Launcher3: Allow changing app drawer and home screen grid
  size from settings
 
@@ -9,20 +9,21 @@ Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
  res/values/cr_strings.xml                     | 38 +++++++++++++++++++
  res/xml/launcher_app_drawer_preferences.xml   | 10 +++++
  res/xml/launcher_home_screen_preferences.xml  | 10 +++++
- .../launcher3/InvariantDeviceProfile.java     | 24 ++++++++++++
- src/com/android/launcher3/Utilities.java      | 14 +++++++
- .../launcher3/settings/SettingsAppDrawer.java |  3 ++
- .../settings/SettingsHomescreen.java          |  3 ++
- 7 files changed, 102 insertions(+)
+ .../launcher3/InvariantDeviceProfile.java     | 28 ++++++++++++++
+ src/com/android/launcher3/LauncherPrefs.kt    |  2 +
+ src/com/android/launcher3/Utilities.java      |  8 ++++
+ .../launcher3/settings/SettingsAppDrawer.java |  3 +-
+ .../settings/SettingsHomescreen.java          |  3 +-
+ 8 files changed, 100 insertions(+), 2 deletions(-)
 
 diff --git a/res/values/cr_strings.xml b/res/values/cr_strings.xml
-index 194374197a..aeedd8940c 100644
+index 252ef9b..c2f8289 100644
 --- a/res/values/cr_strings.xml
 +++ b/res/values/cr_strings.xml
-@@ -404,4 +404,42 @@
+@@ -408,4 +408,42 @@
+     <string name="quick_event_weather_city_summary">Display current weather location</string>
+     <string name="quick_event_weather_text_title">Current condition</string>
      <string name="quick_event_weather_text_summary">Display current weather condition summary</string>
- 
-     <string name="intent_no_app_clock_found">Unable to find calendar or clock activity</string>
 +
 +    <!-- Grid size settings -->
 +    <string name="homescreen_grid_size_title">Home screen grid size</string>
@@ -63,7 +64,7 @@ index 194374197a..aeedd8940c 100644
 +
  </resources>
 diff --git a/res/xml/launcher_app_drawer_preferences.xml b/res/xml/launcher_app_drawer_preferences.xml
-index 9fb54b560d..3d64ab297f 100644
+index 705dd0d..407853d 100644
 --- a/res/xml/launcher_app_drawer_preferences.xml
 +++ b/res/xml/launcher_app_drawer_preferences.xml
 @@ -65,4 +65,14 @@
@@ -82,7 +83,7 @@ index 9fb54b560d..3d64ab297f 100644
 +
  </androidx.preference.PreferenceScreen>
 diff --git a/res/xml/launcher_home_screen_preferences.xml b/res/xml/launcher_home_screen_preferences.xml
-index 5d95aa3521..fe84759d3c 100644
+index d20be7a..97201cb 100644
 --- a/res/xml/launcher_home_screen_preferences.xml
 +++ b/res/xml/launcher_home_screen_preferences.xml
 @@ -31,6 +31,16 @@
@@ -103,21 +104,10 @@ index 5d95aa3521..fe84759d3c 100644
              android:key="pref_add_icon_to_home"
              android:title="@string/auto_add_shortcuts_label"
 diff --git a/src/com/android/launcher3/InvariantDeviceProfile.java b/src/com/android/launcher3/InvariantDeviceProfile.java
-index af48736530..30b9df7aea 100644
+index 508f26b..f267a86 100644
 --- a/src/com/android/launcher3/InvariantDeviceProfile.java
 +++ b/src/com/android/launcher3/InvariantDeviceProfile.java
-@@ -381,6 +381,10 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
-     }
- 
-     public static String getCurrentGridName(Context context) {
-+        String customGridSize = Utilities.getHomescreenGridSize(context);
-+        if (!"auto".equals(customGridSize)) {
-+            return customGridSize;
-+        }
-         return LauncherPrefs.get(context).get(GRID_NAME);
-     }
- 
-@@ -511,6 +515,9 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
+@@ -448,6 +448,9 @@ public class InvariantDeviceProfile {
          numDatabaseAllAppsColumns = deviceType == TYPE_MULTI_DISPLAY
                  ? closestProfile.numDatabaseAllAppsColumns : closestProfile.numAllAppsColumns;
  
@@ -127,7 +117,22 @@ index af48736530..30b9df7aea 100644
          allAppsCellSize = displayOption.allAppsCellSize;
          allAppsBorderSpaces = displayOption.allAppsBorderSpaces;
          allAppsIconSize = displayOption.allAppsIconSizes;
-@@ -1644,4 +1651,21 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
+@@ -521,6 +524,14 @@ public class InvariantDeviceProfile {
+         mChangeListeners.remove(listener);
+     }
+ 
++    public static String getCurrentGridName(Context context) {
++        String customGridSize = Utilities.getHomescreenGridSize(context);
++        if (!"auto".equals(customGridSize)) {
++            return customGridSize;
++        }
++        return LauncherPrefs.get(context).get(GRID_NAME);
++    }
++
+     /**
+      * Updates the current grid, this triggers a new IDP, reloads the database and triggers a grid
+      * migration.
+@@ -1593,4 +1604,21 @@ public class InvariantDeviceProfile {
              return this;
          }
      }
@@ -149,64 +154,64 @@ index af48736530..30b9df7aea 100644
 +        }
 +    }
  }
+diff --git a/src/com/android/launcher3/LauncherPrefs.kt b/src/com/android/launcher3/LauncherPrefs.kt
+index 0c34de5..6fba3af 100644
+--- a/src/com/android/launcher3/LauncherPrefs.kt
++++ b/src/com/android/launcher3/LauncherPrefs.kt
+@@ -285,6 +285,8 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
+         @JvmField val WORK_EDU_STEP = backedUpItem("showed_work_profile_edu", 0)
+         @JvmField val SLEEP_GESTURE = backedUpItem("pref_sleep_gesture", true)
+         @JvmField val SLEEP_GESTURE_HAPTIC = backedUpItem("pref_sleep_gesture_haptic", true)
++        @JvmField val HOMESCREEN_GRID_SIZE = backedUpItem("pref_homescreen_grid_size", "auto")
++        @JvmField val APP_DRAWER_GRID_SIZE = backedUpItem("pref_app_drawer_grid_size", "auto")
+         @JvmField
+         val WORKSPACE_SIZE =
+             backedUpItem(DeviceGridState.KEY_WORKSPACE_SIZE, "", EncryptionType.ENCRYPTED)
 diff --git a/src/com/android/launcher3/Utilities.java b/src/com/android/launcher3/Utilities.java
-index 14af874046..abd6f3501e 100644
+index d48ac7b..3b0b479 100644
 --- a/src/com/android/launcher3/Utilities.java
 +++ b/src/com/android/launcher3/Utilities.java
-@@ -196,6 +196,10 @@ public final class Utilities {
-     public static final String KEY_SHOW_QUICKSPACE_WEATHER_CITY = "pref_quickspace_weather_city";
-     public static final String KEY_SHOW_QUICKSPACE_WEATHER_TEXT = "pref_quickspace_weather_text";
- 
-+    // Grid size preferences
-+    public static final String KEY_HOMESCREEN_GRID_SIZE = "pref_homescreen_grid_size";
-+    public static final String KEY_APP_DRAWER_GRID_SIZE = "pref_app_drawer_grid_size";
-+
-     /**
-      * Returns true if theme is dark.
-      */
-@@ -1201,4 +1205,14 @@ public final class Utilities {
-         SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
-         return prefs.getBoolean(KEY_SHOW_QUICKSPACE_WEATHER_TEXT, true);
+@@ -1129,4 +1129,12 @@ public final class Utilities {
+     public static void startLmoFreeform(Context context, ComponentName activity) {
+         startLmoFreeform(context, activity, UserHandle.myUserId());
      }
 +
 +    public static String getHomescreenGridSize(Context context) {
-+        SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
-+        return prefs.getString(KEY_HOMESCREEN_GRID_SIZE, "auto");
++        return LauncherPrefs.HOMESCREEN_GRID_SIZE.get(context);
 +    }
 +
 +    public static String getAppDrawerGridSize(Context context) {
-+        SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
-+        return prefs.getString(KEY_APP_DRAWER_GRID_SIZE, "auto");
++        return LauncherPrefs.APP_DRAWER_GRID_SIZE.get(context);
 +    }
  }
 diff --git a/src/com/android/launcher3/settings/SettingsAppDrawer.java b/src/com/android/launcher3/settings/SettingsAppDrawer.java
-index 142b38df5a..8b8c1dba13 100644
+index 72cda6a..cf5f4ba 100644
 --- a/src/com/android/launcher3/settings/SettingsAppDrawer.java
 +++ b/src/com/android/launcher3/settings/SettingsAppDrawer.java
-@@ -120,6 +120,9 @@ public class SettingsAppDrawer extends CollapsingToolbarBaseActivity
-             case Utilities.KEY_DRAWER_SCROLLBAR:
-                 LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
-                 break;
-+            case Utilities.KEY_APP_DRAWER_GRID_SIZE:
-+                LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
-+                break;
-             default:
-                 break;
+@@ -114,7 +114,8 @@ public class SettingsAppDrawer extends CollapsingToolbarBaseActivity
+     @Override
+     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+         if (LauncherPrefs.DRAWER_SEARCH.getSharedPrefKey().equals(key) ||
+-                LauncherPrefs.DRAWER_SCROLLBAR.getSharedPrefKey().equals(key)) {
++                LauncherPrefs.DRAWER_SCROLLBAR.getSharedPrefKey().equals(key) ||
++                LauncherPrefs.APP_DRAWER_GRID_SIZE.getSharedPrefKey().equals(key)) {
+             LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
          }
+     }
 diff --git a/src/com/android/launcher3/settings/SettingsHomescreen.java b/src/com/android/launcher3/settings/SettingsHomescreen.java
-index dfcc40ed16..f09ac191c4 100644
+index 59852af..40623c9 100644
 --- a/src/com/android/launcher3/settings/SettingsHomescreen.java
 +++ b/src/com/android/launcher3/settings/SettingsHomescreen.java
-@@ -136,6 +136,9 @@ public class SettingsHomescreen extends CollapsingToolbarBaseActivity
-             case Utilities.KEY_SHOW_QUICKSPACE_WEATHER_TEXT:
-                 LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
-                 break;
-+            case Utilities.KEY_HOMESCREEN_GRID_SIZE:
-+                LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
-+                break;
-             default:
-                 break;
+@@ -130,7 +130,8 @@ public class SettingsHomescreen extends CollapsingToolbarBaseActivity
+                 LauncherPrefs.SHOW_QUICKSPACE_WEATHER.getSharedPrefKey().equals(key) ||
+                 LauncherPrefs.SHOW_QUICKSPACE_WEATHER_CITY.getSharedPrefKey().equals(key) ||
+                 LauncherPrefs.SHOW_QUICKSPACE_WEATHER_PROVIDER.getSharedPrefKey().equals(key) ||
+-                LauncherPrefs.SHOW_QUICKSPACE_WEATHER_TEXT.getSharedPrefKey().equals(key)) {
++                LauncherPrefs.SHOW_QUICKSPACE_WEATHER_TEXT.getSharedPrefKey().equals(key) ||
++                LauncherPrefs.HOMESCREEN_GRID_SIZE.getSharedPrefKey().equals(key)) {
+             LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
          }
+     }
 -- 
 2.51.0
 
