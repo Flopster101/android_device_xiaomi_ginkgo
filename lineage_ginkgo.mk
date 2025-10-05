@@ -27,7 +27,7 @@ endif
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
 # MIUI camera support
-TARGET_CAMERA_PACKAGE_NAME := com.android.camera
+$(call soong_config_set,camera,package_name,com.android.camera)
 TARGET_USES_MIUI_CAMERA := true
 TARGET_INCLUDES_MIUI_CAMERA := true
 
