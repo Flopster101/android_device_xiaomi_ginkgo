@@ -1,25 +1,26 @@
-From 4d94cabf187e9d94f23d8a9e2d67da0628f5ec38 Mon Sep 17 00:00:00 2001
+From aead7b8cd0aab259c8eb91b7f67b9f64442782ad Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
-Date: Fri, 3 Oct 2025 16:33:38 -0300
+Date: Sun, 5 Oct 2025 14:33:58 -0300
 Subject: [PATCH] pixel: Remove Google Sans UI fonts
 
 Broken.
 
 Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
 ---
- overlay/PixelFrameworksOverlay/res/values/config.xml | 8 --------
- pixel-vendor.mk                                      | 2 --
- proprietary-files.txt                                | 2 --
- 3 files changed, 12 deletions(-)
+ overlay/PixelFrameworksOverlay/res/values/config.xml | 9 ---------
+ pixel-vendor.mk                                      | 4 ----
+ proprietary-files.txt                                | 4 ----
+ 3 files changed, 17 deletions(-)
 
 diff --git a/overlay/PixelFrameworksOverlay/res/values/config.xml b/overlay/PixelFrameworksOverlay/res/values/config.xml
-index 89e94ad..611576c 100644
+index 89e94ad..952692e 100644
 --- a/overlay/PixelFrameworksOverlay/res/values/config.xml
 +++ b/overlay/PixelFrameworksOverlay/res/values/config.xml
-@@ -224,12 +224,4 @@
+@@ -223,13 +223,4 @@
+         See android.service.rotationresolver.RotationResolverService.
      -->
      <string name="config_defaultRotationResolverService" translatable="false">com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiRotationResolverService</string>
- 
+-
 -    <!-- Name of a font family to use for headlines. If empty, falls back to platform default -->
 -    <string name="config_headlineFontFamily" translatable="false">google-sans</string>
 -
@@ -30,26 +31,30 @@ index 89e94ad..611576c 100644
 -    <string name="config_headlineFontFeatureSettings" translatable="false">ss03</string>
  </resources>
 diff --git a/pixel-vendor.mk b/pixel-vendor.mk
-index f5a553f..8a86ac7 100644
+index b6fad6f..7bb3701 100644
 --- a/pixel-vendor.mk
 +++ b/pixel-vendor.mk
-@@ -18,8 +18,6 @@ PRODUCT_COPY_FILES += \
+@@ -18,10 +18,6 @@ PRODUCT_COPY_FILES += \
      vendor/google/pixel/proprietary/product/etc/sysconfig/pixel_experience_2019_midyear.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/pixel_experience_2019_midyear.xml \
      vendor/google/pixel/proprietary/product/etc/sysconfig/pixel_experience_2020.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/pixel_experience_2020.xml \
      vendor/google/pixel/proprietary/product/etc/sysconfig/pixel_experience_2020_midyear.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/pixel_experience_2020_midyear.xml \
 -    vendor/google/pixel/proprietary/product/fonts/GoogleSans-Italic.ttf:$(TARGET_COPY_OUT_PRODUCT)/fonts/GoogleSans-Italic.ttf \
 -    vendor/google/pixel/proprietary/product/fonts/GoogleSans-Regular.ttf:$(TARGET_COPY_OUT_PRODUCT)/fonts/GoogleSans-Regular.ttf \
+-    vendor/google/pixel/proprietary/product/fonts/GoogleSansFlex-Regular.ttf:$(TARGET_COPY_OUT_PRODUCT)/fonts/GoogleSansFlex-Regular.ttf \
+-    vendor/google/pixel/proprietary/product/fonts/GoogleSansFlexClock-Regular.ttf:$(TARGET_COPY_OUT_PRODUCT)/fonts/GoogleSansFlexClock-Regular.ttf \
      vendor/google/pixel/proprietary/product/media/audio/alarms/A_real_hoot.ogg:$(TARGET_COPY_OUT_PRODUCT)/media/audio/alarms/A_real_hoot.ogg \
      vendor/google/pixel/proprietary/product/media/audio/alarms/Bright_morning.ogg:$(TARGET_COPY_OUT_PRODUCT)/media/audio/alarms/Bright_morning.ogg \
      vendor/google/pixel/proprietary/product/media/audio/alarms/Cuckoo_clock.ogg:$(TARGET_COPY_OUT_PRODUCT)/media/audio/alarms/Cuckoo_clock.ogg \
 diff --git a/proprietary-files.txt b/proprietary-files.txt
-index d9c66d9..ca988c1 100644
+index 3595d13..e27c759 100644
 --- a/proprietary-files.txt
 +++ b/proprietary-files.txt
-@@ -11,8 +11,6 @@ product/etc/sysconfig/pixel_experience_2019_midyear.xml
+@@ -11,10 +11,6 @@ product/etc/sysconfig/pixel_experience_2019_midyear.xml
  product/etc/sysconfig/pixel_experience_2019.xml
  product/etc/sysconfig/pixel_experience_2020_midyear.xml
  product/etc/sysconfig/pixel_experience_2020.xml
+-product/fonts/GoogleSansFlexClock-Regular.ttf
+-product/fonts/GoogleSansFlex-Regular.ttf
 -product/fonts/GoogleSans-Italic.ttf
 -product/fonts/GoogleSans-Regular.ttf
  product/media/audio/alarms/A_real_hoot.ogg
