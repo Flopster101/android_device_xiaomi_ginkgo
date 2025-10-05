@@ -39,25 +39,10 @@ if ! grep -q "Grid size settings" "packages/apps/Launcher3/res/values/cr_strings
   )
 fi
 
-echo "-> Checking for SystemUI patches to apply..."
-if ! grep -q "bottom|start" "frameworks/base/packages/SystemUI/res/layout/status_bar_wifi_group_inner.xml"; then
-  (
-    cd "frameworks/base"
-    git am -3 "$SCRIPTS_ROOT/patches/SystemUI/0001-WifiStandard-Move-standard-icon-to-the-left-side.patch"
-  )
-fi
-
 if ! grep -q "convertLteToFourg" "frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDialogController.java"; then
   (
     cd "frameworks/base"
     git am -3 "$SCRIPTS_ROOT/patches/SystemUI/0001-SystemUI-Apply-forced-4G-to-Quick-Settings-tile-too.patch"
-  )
-fi
-
-if ! grep -q "Cache height to prevent micro-adjustments during font metric changes" "frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/Clock.java"; then
-  (
-    cd "frameworks/base"
-    git am -3 "$SCRIPTS_ROOT/patches/SystemUI/0001-SystemUI-Cache-clock-height.patch"
   )
 fi
 
@@ -66,13 +51,5 @@ if grep -q "GoogleSans-" "vendor/google/pixel/pixel-vendor.mk"; then
   (
     cd "vendor/google/pixel"
     git am -3 "$SCRIPTS_ROOT/patches/vendor_google/0001-pixel-Remove-Google-Sans-UI-fonts.patch"
-  )
-fi
-
-echo "-> Checking for vendor/lineage patches to apply..."
-if grep -q "google-sans-" "vendor/lineage/overlay/common/frameworks/base/core/res/res/values/config.xml"; then
-  (
-    cd "vendor/lineage"
-    git am -3 "$SCRIPTS_ROOT/patches/vendor_crdroid/0001-crdroid-overlay-Drop-Google-Sans-as-UI-font.patch"
   )
 fi
