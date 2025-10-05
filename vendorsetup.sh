@@ -32,7 +32,8 @@ if ! grep -q "Grid size settings" "packages/apps/Launcher3/res/values/cr_strings
   )
 fi
 
-if ! grep -q "convertLteToFourg" "frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDialogController.java"; then
+echo "-> Checking for SystemUI patches to apply..."
+if ! grep -q "convertLteToFourg" "frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java"; then
   (
     cd "frameworks/base"
     git am -3 "$SCRIPTS_ROOT/patches/SystemUI/0001-SystemUI-Apply-forced-4G-to-Quick-Settings-tile-too.patch"
