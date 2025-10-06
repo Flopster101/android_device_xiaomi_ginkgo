@@ -32,6 +32,13 @@ if ! grep -q "Grid size settings" "packages/apps/Launcher3/res/values/cr_strings
   )
 fi
 
+if ! grep -q "Try multiple wallpaper picker packages" "packages/apps/Launcher3/src/com/android/launcher3/views/OptionsPopupView.java"; then
+  (
+    cd "packages/apps/Launcher3"
+    git am -3 "$SCRIPTS_ROOT/patches/Launcher3/0001-Launcher3-Support-multiple-wallpaper-pickers.patch"
+  )
+fi
+
 echo "-> Checking for SystemUI patches to apply..."
 if ! grep -q "convertLteToFourg" "frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java"; then
   (
