@@ -11,8 +11,7 @@ DEVICE_PATH := device/xiaomi/ginkgo
 
 ifeq ($(WITH_GMS),true)
 PRODUCT_PACKAGES += \
-    RemovePackagesGinkgo \
-    Launcher3OverlayGMS
+    RemovePackagesGinkgo
 endif
 
 # AAPT
