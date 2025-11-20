@@ -1,6 +1,6 @@
-From ace8c1f752ed53f7cbd67edf44999eb48a573850 Mon Sep 17 00:00:00 2001
+From a3f59fc468905c65f25c6d01fab3b208ad94f1e0 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
-Date: Sun, 5 Oct 2025 14:28:22 -0300
+Date: Thu, 20 Nov 2025 14:01:15 -0300
 Subject: [PATCH] Launcher3: Allow changing app drawer and home screen grid
  size from settings
 
@@ -8,25 +8,24 @@ Version 2
 
 Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
 ---
- res/values/cr_strings.xml                     | 38 +++++++++++++++++++
+ res/values/cr_strings.xml                     | 37 +++++++++++++++++++
  res/xml/launcher_app_drawer_preferences.xml   | 10 +++++
  res/xml/launcher_home_screen_preferences.xml  | 10 +++++
- .../launcher3/InvariantDeviceProfile.java     | 28 ++++++++++++++
+ .../launcher3/InvariantDeviceProfile.java     | 32 +++++++++++++++-
  src/com/android/launcher3/LauncherPrefs.kt    |  2 +
  src/com/android/launcher3/Utilities.java      |  8 ++++
  .../launcher3/settings/SettingsAppDrawer.java |  3 +-
  .../settings/SettingsHomescreen.java          |  3 +-
- 8 files changed, 100 insertions(+), 2 deletions(-)
+ 8 files changed, 101 insertions(+), 4 deletions(-)
 
 diff --git a/res/values/cr_strings.xml b/res/values/cr_strings.xml
-index 103fd5e32f..506c0c31d0 100644
+index 510e842891..c1209300ff 100644
 --- a/res/values/cr_strings.xml
 +++ b/res/values/cr_strings.xml
-@@ -412,4 +412,42 @@
-     <!-- Auto-hide page indicator dots -->
-     <string name="auto_hide_dots">Auto-hide page indicator</string>
-     <string name="auto_hide_dots_summary">Hide the page indicator dots automatically</string>
-+
+@@ -416,4 +416,41 @@
+     <!-- Background blur -->
+     <string name="background_blur_title">Background blur depth</string>
+     <string name="background_blur_summary">Set blur depth level for recents and app drawer</string>
 +    <!-- Grid size settings -->
 +    <string name="homescreen_grid_size_title">Home screen grid size</string>
 +    <string name="homescreen_grid_size_summary">Number of icons per row on homescreen</string>
@@ -66,10 +65,10 @@ index 103fd5e32f..506c0c31d0 100644
 +
  </resources>
 diff --git a/res/xml/launcher_app_drawer_preferences.xml b/res/xml/launcher_app_drawer_preferences.xml
-index 705dd0db33..407853d7f2 100644
+index d31044ac12..00ca95ded3 100644
 --- a/res/xml/launcher_app_drawer_preferences.xml
 +++ b/res/xml/launcher_app_drawer_preferences.xml
-@@ -65,4 +65,14 @@
+@@ -74,4 +74,14 @@
          settings:units="%"
          android:defaultValue="100" />
  
@@ -85,10 +84,10 @@ index 705dd0db33..407853d7f2 100644
 +
  </androidx.preference.PreferenceScreen>
 diff --git a/res/xml/launcher_home_screen_preferences.xml b/res/xml/launcher_home_screen_preferences.xml
-index c4554ffa09..1aebed48cb 100644
+index bc771c1ce9..f59a573d85 100644
 --- a/res/xml/launcher_home_screen_preferences.xml
 +++ b/res/xml/launcher_home_screen_preferences.xml
-@@ -31,6 +31,16 @@
+@@ -32,6 +32,16 @@
              android:summaryOff="@string/settings_lock_layout_summary_off"
              launcher:iconSpaceReserved="false" />
  
@@ -106,9 +105,18 @@ index c4554ffa09..1aebed48cb 100644
              android:key="pref_add_icon_to_home"
              android:title="@string/auto_add_shortcuts_label"
 diff --git a/src/com/android/launcher3/InvariantDeviceProfile.java b/src/com/android/launcher3/InvariantDeviceProfile.java
-index 508f26b2d4..f267a86ad7 100644
+index 508f26b2d4..34344f145d 100644
 --- a/src/com/android/launcher3/InvariantDeviceProfile.java
 +++ b/src/com/android/launcher3/InvariantDeviceProfile.java
+@@ -281,7 +281,7 @@ public class InvariantDeviceProfile {
+         mPrefs = prefs;
+         mThemeManager = themeManager;
+ 
+-        String gridName = prefs.get(GRID_NAME);
++        String gridName = getCurrentGridName(context);
+         initGrid(context, gridName);
+ 
+         dc.setPriorityListener(
 @@ -448,6 +448,9 @@ public class InvariantDeviceProfile {
          numDatabaseAllAppsColumns = deviceType == TYPE_MULTI_DISPLAY
                  ? closestProfile.numDatabaseAllAppsColumns : closestProfile.numAllAppsColumns;
@@ -134,6 +142,15 @@ index 508f26b2d4..f267a86ad7 100644
      /**
       * Updates the current grid, this triggers a new IDP, reloads the database and triggers a grid
       * migration.
+@@ -548,7 +559,7 @@ public class InvariantDeviceProfile {
+         Object[] oldState = toModelState();
+ 
+         // Re-init grid
+-        initGrid(context, mPrefs.get(GRID_NAME));
++        initGrid(context, getCurrentGridName(context));
+ 
+         boolean modelPropsChanged = !Arrays.equals(oldState, toModelState());
+         for (OnIDPChangeListener listener : mChangeListeners) {
 @@ -1593,4 +1604,21 @@ public class InvariantDeviceProfile {
              return this;
          }
@@ -157,10 +174,10 @@ index 508f26b2d4..f267a86ad7 100644
 +    }
  }
 diff --git a/src/com/android/launcher3/LauncherPrefs.kt b/src/com/android/launcher3/LauncherPrefs.kt
-index 4fd288f74e..b363289bdd 100644
+index 6d5a243b93..72048f8bfd 100644
 --- a/src/com/android/launcher3/LauncherPrefs.kt
 +++ b/src/com/android/launcher3/LauncherPrefs.kt
-@@ -286,6 +286,8 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
+@@ -289,6 +289,8 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
          @JvmField val WORK_EDU_STEP = backedUpItem("showed_work_profile_edu", 0)
          @JvmField val SLEEP_GESTURE = backedUpItem("pref_sleep_gesture", true)
          @JvmField val SLEEP_GESTURE_HAPTIC = backedUpItem("pref_sleep_gesture_haptic", true)
@@ -201,10 +218,10 @@ index 72cda6a2d2..cf5f4bade8 100644
          }
      }
 diff --git a/src/com/android/launcher3/settings/SettingsHomescreen.java b/src/com/android/launcher3/settings/SettingsHomescreen.java
-index 1050ade3fd..988c1c10d2 100644
+index 5b57b9ff7a..aa42993c63 100644
 --- a/src/com/android/launcher3/settings/SettingsHomescreen.java
 +++ b/src/com/android/launcher3/settings/SettingsHomescreen.java
-@@ -131,7 +131,8 @@ public class SettingsHomescreen extends CollapsingToolbarBaseActivity
+@@ -133,7 +133,8 @@ public class SettingsHomescreen extends CollapsingToolbarBaseActivity
                  LauncherPrefs.SHOW_QUICKSPACE_WEATHER_CITY.getSharedPrefKey().equals(key) ||
                  LauncherPrefs.SHOW_QUICKSPACE_WEATHER_PROVIDER.getSharedPrefKey().equals(key) ||
                  LauncherPrefs.SHOW_QUICKSPACE_WEATHER_TEXT.getSharedPrefKey().equals(key) ||
@@ -215,5 +232,5 @@ index 1050ade3fd..988c1c10d2 100644
          }
      }
 -- 
-2.51.0
+2.52.0
 
