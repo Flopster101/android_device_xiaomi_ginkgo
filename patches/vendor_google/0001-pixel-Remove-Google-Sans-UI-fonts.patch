@@ -1,4 +1,4 @@
-From aead7b8cd0aab259c8eb91b7f67b9f64442782ad Mon Sep 17 00:00:00 2001
+From 6477f817ad53e41fcaf17c7544ed59d10c54c839 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Sun, 5 Oct 2025 14:33:58 -0300
 Subject: [PATCH] pixel: Remove Google Sans UI fonts
@@ -31,7 +31,7 @@ index 89e94ad..952692e 100644
 -    <string name="config_headlineFontFeatureSettings" translatable="false">ss03</string>
  </resources>
 diff --git a/pixel-vendor.mk b/pixel-vendor.mk
-index b6fad6f..7bb3701 100644
+index 932999d..e6f65c4 100644
 --- a/pixel-vendor.mk
 +++ b/pixel-vendor.mk
 @@ -18,10 +18,6 @@ PRODUCT_COPY_FILES += \
@@ -46,7 +46,7 @@ index b6fad6f..7bb3701 100644
      vendor/google/pixel/proprietary/product/media/audio/alarms/Bright_morning.ogg:$(TARGET_COPY_OUT_PRODUCT)/media/audio/alarms/Bright_morning.ogg \
      vendor/google/pixel/proprietary/product/media/audio/alarms/Cuckoo_clock.ogg:$(TARGET_COPY_OUT_PRODUCT)/media/audio/alarms/Cuckoo_clock.ogg \
 diff --git a/proprietary-files.txt b/proprietary-files.txt
-index 3595d13..e27c759 100644
+index fb1b1fe..3f4994c 100644
 --- a/proprietary-files.txt
 +++ b/proprietary-files.txt
 @@ -11,10 +11,6 @@ product/etc/sysconfig/pixel_experience_2019_midyear.xml
@@ -61,5 +61,5 @@ index 3595d13..e27c759 100644
  product/media/audio/alarms/Bright_morning.ogg
  product/media/audio/alarms/Cuckoo_clock.ogg
 -- 
-2.51.0
+2.39.5
 

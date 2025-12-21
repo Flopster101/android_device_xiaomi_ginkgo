@@ -1,4 +1,4 @@
-From a3f59fc468905c65f25c6d01fab3b208ad94f1e0 Mon Sep 17 00:00:00 2001
+From 9acc63c3aa7e9776143fc5bc31c1427a9c02f336 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Thu, 20 Nov 2025 14:01:15 -0300
 Subject: [PATCH] Launcher3: Allow changing app drawer and home screen grid
@@ -13,62 +13,62 @@ Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
  res/xml/launcher_home_screen_preferences.xml  | 10 +++++
  .../launcher3/InvariantDeviceProfile.java     | 32 +++++++++++++++-
  src/com/android/launcher3/LauncherPrefs.kt    |  2 +
- src/com/android/launcher3/Utilities.java      |  8 ++++
+ src/com/android/launcher3/Utilities.java      |  7 ++++
  .../launcher3/settings/SettingsAppDrawer.java |  3 +-
  .../settings/SettingsHomescreen.java          |  3 +-
- 8 files changed, 101 insertions(+), 4 deletions(-)
+ 8 files changed, 100 insertions(+), 4 deletions(-)
 
 diff --git a/res/values/cr_strings.xml b/res/values/cr_strings.xml
-index 510e842891..c1209300ff 100644
+index b44da36..ae3d7b8 100644
 --- a/res/values/cr_strings.xml
 +++ b/res/values/cr_strings.xml
-@@ -416,4 +416,41 @@
-     <!-- Background blur -->
-     <string name="background_blur_title">Background blur depth</string>
-     <string name="background_blur_summary">Set blur depth level for recents and app drawer</string>
-+    <!-- Grid size settings -->
-+    <string name="homescreen_grid_size_title">Home screen grid size</string>
-+    <string name="homescreen_grid_size_summary">Number of icons per row on homescreen</string>
-+    <string name="app_drawer_grid_size_title">App drawer grid size</string>
-+    <string name="app_drawer_grid_size_summary">Number of icons per row in app drawer</string>
-+    <string name="grid_size_3x3">3x3</string>
-+    <string name="grid_size_4x4">4x4</string>
-+    <string name="grid_size_4x5">4x5</string>
-+    <string name="grid_size_5x5">5x5</string>
-+    <string name="grid_size_5x6">5x6</string>
-+    <string name="grid_size_6x5">6x5</string>
-+    <string name="grid_size_6x6">6x6</string>
-+    <string name="grid_size_auto">Auto (device default)</string>
+@@ -176,4 +176,41 @@
+     <string name="recents_screenshot_title">Screenshot</string>
+     <string name="recents_clear_all_title">Clear all</string>
+     <string name="recents_lens_title">Lens</string>
 +
-+    <!-- Grid size arrays -->
-+    <string-array name="grid_size_entries">
-+        <item>Auto (device default)</item>
-+        <item>3x3</item>
-+        <item>4x4</item>
-+        <item>4x5</item>
-+        <item>5x5</item>
-+        <item>5x6</item>
-+        <item>6x5</item>
-+        <item>6x6</item>
-+    </string-array>
++     <!-- Grid size settings -->
++     <string name="homescreen_grid_size_title">Home screen grid size</string>
++     <string name="homescreen_grid_size_summary">Number of icons per row on homescreen</string>
++     <string name="app_drawer_grid_size_title">App drawer grid size</string>
++     <string name="app_drawer_grid_size_summary">Number of icons per row in app drawer</string>
++     <string name="grid_size_3x3">3x3</string>
++     <string name="grid_size_4x4">4x4</string>
++     <string name="grid_size_4x5">4x5</string>
++     <string name="grid_size_5x5">5x5</string>
++     <string name="grid_size_5x6">5x6</string>
++     <string name="grid_size_6x5">6x5</string>
++     <string name="grid_size_6x6">6x6</string>
++     <string name="grid_size_auto">Auto (device default)</string>
 +
-+    <string-array name="grid_size_values">
-+        <item>auto</item>
-+        <item>3x3</item>
-+        <item>4x4</item>
-+        <item>4x5</item>
-+        <item>5x5</item>
-+        <item>5x6</item>
-+        <item>6x5</item>
-+        <item>6x6</item>
-+    </string-array>
++     <!-- Grid size arrays -->
++     <string-array name="grid_size_entries">
++          <item>Auto (device default)</item>
++          <item>3x3</item>
++          <item>4x4</item>
++          <item>4x5</item>
++          <item>5x5</item>
++          <item>5x6</item>
++          <item>6x5</item>
++          <item>6x6</item>
++     </string-array>
 +
++     <string-array name="grid_size_values">
++          <item>auto</item>
++          <item>3x3</item>
++          <item>4x4</item>
++          <item>4x5</item>
++          <item>5x5</item>
++          <item>5x6</item>
++          <item>6x5</item>
++          <item>6x6</item>
++     </string-array>
  </resources>
 diff --git a/res/xml/launcher_app_drawer_preferences.xml b/res/xml/launcher_app_drawer_preferences.xml
-index d31044ac12..00ca95ded3 100644
+index e5bc40f..e513d0a 100644
 --- a/res/xml/launcher_app_drawer_preferences.xml
 +++ b/res/xml/launcher_app_drawer_preferences.xml
-@@ -74,4 +74,14 @@
+@@ -64,4 +64,14 @@
          settings:units="%"
          android:defaultValue="100" />
  
@@ -84,7 +84,7 @@ index d31044ac12..00ca95ded3 100644
 +
  </androidx.preference.PreferenceScreen>
 diff --git a/res/xml/launcher_home_screen_preferences.xml b/res/xml/launcher_home_screen_preferences.xml
-index bc771c1ce9..f59a573d85 100644
+index 4f16f4c..64a3bb9 100644
 --- a/res/xml/launcher_home_screen_preferences.xml
 +++ b/res/xml/launcher_home_screen_preferences.xml
 @@ -32,6 +32,16 @@
@@ -105,10 +105,10 @@ index bc771c1ce9..f59a573d85 100644
              android:key="pref_add_icon_to_home"
              android:title="@string/auto_add_shortcuts_label"
 diff --git a/src/com/android/launcher3/InvariantDeviceProfile.java b/src/com/android/launcher3/InvariantDeviceProfile.java
-index 508f26b2d4..34344f145d 100644
+index 30c9b87..bbc1c21 100644
 --- a/src/com/android/launcher3/InvariantDeviceProfile.java
 +++ b/src/com/android/launcher3/InvariantDeviceProfile.java
-@@ -281,7 +281,7 @@ public class InvariantDeviceProfile {
+@@ -285,7 +285,7 @@ public class InvariantDeviceProfile {
          mPrefs = prefs;
          mThemeManager = themeManager;
  
@@ -117,7 +117,7 @@ index 508f26b2d4..34344f145d 100644
          initGrid(context, gridName);
  
          dc.setPriorityListener(
-@@ -448,6 +448,9 @@ public class InvariantDeviceProfile {
+@@ -450,6 +450,9 @@ public class InvariantDeviceProfile {
          numDatabaseAllAppsColumns = deviceType == TYPE_MULTI_DISPLAY
                  ? closestProfile.numDatabaseAllAppsColumns : closestProfile.numAllAppsColumns;
  
@@ -127,7 +127,7 @@ index 508f26b2d4..34344f145d 100644
          allAppsCellSize = displayOption.allAppsCellSize;
          allAppsBorderSpaces = displayOption.allAppsBorderSpaces;
          allAppsIconSize = displayOption.allAppsIconSizes;
-@@ -521,6 +524,14 @@ public class InvariantDeviceProfile {
+@@ -523,6 +526,14 @@ public class InvariantDeviceProfile {
          mChangeListeners.remove(listener);
      }
  
@@ -142,7 +142,7 @@ index 508f26b2d4..34344f145d 100644
      /**
       * Updates the current grid, this triggers a new IDP, reloads the database and triggers a grid
       * migration.
-@@ -548,7 +559,7 @@ public class InvariantDeviceProfile {
+@@ -550,7 +561,7 @@ public class InvariantDeviceProfile {
          Object[] oldState = toModelState();
  
          // Re-init grid
@@ -151,7 +151,7 @@ index 508f26b2d4..34344f145d 100644
  
          boolean modelPropsChanged = !Arrays.equals(oldState, toModelState());
          for (OnIDPChangeListener listener : mChangeListeners) {
-@@ -1593,4 +1604,21 @@ public class InvariantDeviceProfile {
+@@ -1767,4 +1778,21 @@ public class InvariantDeviceProfile {
              return this;
          }
      }
@@ -174,27 +174,26 @@ index 508f26b2d4..34344f145d 100644
 +    }
  }
 diff --git a/src/com/android/launcher3/LauncherPrefs.kt b/src/com/android/launcher3/LauncherPrefs.kt
-index 6d5a243b93..72048f8bfd 100644
+index 81d6287..4d0e131 100644
 --- a/src/com/android/launcher3/LauncherPrefs.kt
 +++ b/src/com/android/launcher3/LauncherPrefs.kt
-@@ -289,6 +289,8 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
+@@ -270,6 +270,8 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
+         @JvmField val PROMISE_ICON_IDS = nonRestorableItem(InstallSessionHelper.PROMISE_ICON_IDS, "")
+         @JvmField val WALLPAPER_SCROLLING = backedUpItem("pref_allow_wallpaper_scrolling", true)
          @JvmField val WORK_EDU_STEP = backedUpItem("showed_work_profile_edu", 0)
-         @JvmField val SLEEP_GESTURE = backedUpItem("pref_sleep_gesture", true)
-         @JvmField val SLEEP_GESTURE_HAPTIC = backedUpItem("pref_sleep_gesture_haptic", true)
 +        @JvmField val HOMESCREEN_GRID_SIZE = backedUpItem("pref_homescreen_grid_size", "auto")
 +        @JvmField val APP_DRAWER_GRID_SIZE = backedUpItem("pref_app_drawer_grid_size", "auto")
          @JvmField
          val WORKSPACE_SIZE =
              backedUpItem(DeviceGridState.KEY_WORKSPACE_SIZE, "", EncryptionType.ENCRYPTED)
 diff --git a/src/com/android/launcher3/Utilities.java b/src/com/android/launcher3/Utilities.java
-index d48ac7bb13..3b0b479179 100644
+index 450713c..2e5e491 100644
 --- a/src/com/android/launcher3/Utilities.java
 +++ b/src/com/android/launcher3/Utilities.java
-@@ -1129,4 +1129,12 @@ public final class Utilities {
-     public static void startLmoFreeform(Context context, ComponentName activity) {
-         startLmoFreeform(context, activity, UserHandle.myUserId());
+@@ -1114,4 +1114,11 @@ public final class Utilities {
+     public static boolean isMusicSearchEnabled(Context context) {
+         return isGSAEnabled(context) && LauncherPrefs.DOCK_MUSIC_SEARCH.get(context);
      }
-+
 +    public static String getHomescreenGridSize(Context context) {
 +        return LauncherPrefs.HOMESCREEN_GRID_SIZE.get(context);
 +    }
@@ -204,33 +203,33 @@ index d48ac7bb13..3b0b479179 100644
 +    }
  }
 diff --git a/src/com/android/launcher3/settings/SettingsAppDrawer.java b/src/com/android/launcher3/settings/SettingsAppDrawer.java
-index 72cda6a2d2..cf5f4bade8 100644
+index 0289345..3568e26 100644
 --- a/src/com/android/launcher3/settings/SettingsAppDrawer.java
 +++ b/src/com/android/launcher3/settings/SettingsAppDrawer.java
-@@ -114,7 +114,8 @@ public class SettingsAppDrawer extends CollapsingToolbarBaseActivity
+@@ -113,7 +113,8 @@ public class SettingsAppDrawer extends CollapsingToolbarBaseActivity
+ 
      @Override
      public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-         if (LauncherPrefs.DRAWER_SEARCH.getSharedPrefKey().equals(key) ||
--                LauncherPrefs.DRAWER_SCROLLBAR.getSharedPrefKey().equals(key)) {
-+                LauncherPrefs.DRAWER_SCROLLBAR.getSharedPrefKey().equals(key) ||
-+                LauncherPrefs.APP_DRAWER_GRID_SIZE.getSharedPrefKey().equals(key)) {
+-        if (LauncherPrefs.DRAWER_SEARCH.getSharedPrefKey().equals(key)) {
++        if (LauncherPrefs.DRAWER_SEARCH.getSharedPrefKey().equals(key) ||
++            LauncherPrefs.APP_DRAWER_GRID_SIZE.getSharedPrefKey().equals(key)) {
              LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
          }
      }
 diff --git a/src/com/android/launcher3/settings/SettingsHomescreen.java b/src/com/android/launcher3/settings/SettingsHomescreen.java
-index 5b57b9ff7a..aa42993c63 100644
+index 2cd889e..a02a2c0 100644
 --- a/src/com/android/launcher3/settings/SettingsHomescreen.java
 +++ b/src/com/android/launcher3/settings/SettingsHomescreen.java
-@@ -133,7 +133,8 @@ public class SettingsHomescreen extends CollapsingToolbarBaseActivity
-                 LauncherPrefs.SHOW_QUICKSPACE_WEATHER_CITY.getSharedPrefKey().equals(key) ||
-                 LauncherPrefs.SHOW_QUICKSPACE_WEATHER_PROVIDER.getSharedPrefKey().equals(key) ||
-                 LauncherPrefs.SHOW_QUICKSPACE_WEATHER_TEXT.getSharedPrefKey().equals(key) ||
--                LauncherPrefs.AUTO_HIDE_DOTS.getSharedPrefKey().equals(key)) {
-+                LauncherPrefs.AUTO_HIDE_DOTS.getSharedPrefKey().equals(key) ||
+@@ -121,7 +121,8 @@ public class SettingsHomescreen extends CollapsingToolbarBaseActivity
+                 LauncherPrefs.DOCK_MUSIC_SEARCH.getSharedPrefKey().equals(key) ||
+                 LauncherPrefs.HOTSEAT_QSB_OPACITY.getSharedPrefKey().equals(key) ||
+                 LauncherPrefs.HOTSEAT_QSB_STROKE_WIDTH.getSharedPrefKey().equals(key) ||
+-                LauncherPrefs.SHOW_STATUS_BAR.getSharedPrefKey().equals(key)) {
++                LauncherPrefs.SHOW_STATUS_BAR.getSharedPrefKey().equals(key) ||
 +                LauncherPrefs.HOMESCREEN_GRID_SIZE.getSharedPrefKey().equals(key)) {
              LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
          }
      }
 -- 
-2.52.0
+2.39.5
 

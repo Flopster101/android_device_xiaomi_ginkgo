@@ -1,4 +1,4 @@
-From e89af2eda6abf60ef64cbe5eb27d453d96cf8069 Mon Sep 17 00:00:00 2001
+From aba10736b0a73ae5e03a25f509c79064a1837c83 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Sun, 5 Oct 2025 22:43:38 -0300
 Subject: [PATCH] Launcher3: Support multiple wallpaper pickers
@@ -63,5 +63,5 @@ index 55855a5..5e43438 100644
  
      static WorkspaceItemInfo placeholderInfo(Intent intent) {
 -- 
-2.51.0
+2.39.5
 

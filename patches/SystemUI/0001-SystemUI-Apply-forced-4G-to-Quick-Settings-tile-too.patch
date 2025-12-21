@@ -1,4 +1,4 @@
-From 66bbc8ac8009709a51b46132a875b19f19236c57 Mon Sep 17 00:00:00 2001
+From d31963274e43ed62970dc82c55806290dece63bf Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Sun, 5 Oct 2025 14:42:00 -0300
 Subject: [PATCH] SystemUI: Apply forced 4G to Quick Settings tile too
@@ -8,16 +8,16 @@ consistently across the UI.
 
 Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
 ---
- .../InternetDetailsContentController.java     | 44 ++++++++++++++++++-
+ .../InternetDetailsContentController.java     | 46 +++++++++++++++++--
  .../connectivity/MobileSignalController.java  | 23 ++++++++++
- .../ui/viewmodel/InternetTileViewModel.kt     | 24 ++++++++--
- 3 files changed, 85 insertions(+), 6 deletions(-)
+ .../ui/viewmodel/InternetTileViewModel.kt     | 25 ++++++++--
+ 3 files changed, 87 insertions(+), 7 deletions(-)
 
 diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java b/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java
-index f6ec7e6c7..1e50ed54a 100644
+index 2bd64c2b8..8f515d2d4 100644
 --- a/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java
 +++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java
-@@ -97,6 +97,8 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
+@@ -96,6 +96,8 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
  import com.android.systemui.statusbar.policy.LocationController;
  import com.android.systemui.toast.SystemUIToast;
  import com.android.systemui.toast.ToastFactory;
@@ -44,7 +44,7 @@ index f6ec7e6c7..1e50ed54a 100644
      public static final Drawable EMPTY_DRAWABLE = new ColorDrawable(Color.TRANSPARENT);
      public static final int NO_CELL_DATA_TYPE_ICON = 0;
      private static final int SUBTITLE_TEXT_WIFI_IS_OFF = R.string.wifi_is_off;
-@@ -178,6 +182,7 @@ public class InternetDetailsContentController implements AccessPointController.A
+@@ -187,6 +191,7 @@ public class InternetDetailsContentController implements AccessPointController.A
      private Handler mHandler;
      private Handler mWorkerHandler;
      private MobileMappings.Config mConfig = null;
@@ -52,9 +52,9 @@ index f6ec7e6c7..1e50ed54a 100644
      private Executor mExecutor;
      private AccessPointController mAccessPointController;
      private IntentFilter mConnectionStateFilter;
-@@ -323,6 +328,19 @@ public class InternetDetailsContentController implements AccessPointController.A
-         mHotspotController = hotspotController;
-         mPolicyManager = NetworkPolicyManager.from(context);
+@@ -322,6 +327,19 @@ public class InternetDetailsContentController implements AccessPointController.A
+         mConnectedWifiInternetMonitor = new ConnectedWifiInternetMonitor();
+         mWifiStateWorker = wifiStateWorker;
          mFeatureFlags = featureFlags;
 +        TunerService tunerService = Dependency.get(TunerService.class);
 +        tunerService.addTunable(this, SHOW_FOURG_ICON);
@@ -72,13 +72,14 @@ index f6ec7e6c7..1e50ed54a 100644
      }
  
      void onStart(@NonNull InternetDialogCallback callback, boolean canConfigWifi) {
-@@ -788,8 +806,14 @@ public class InternetDetailsContentController implements AccessPointController.A
+@@ -789,8 +807,14 @@ public class InternetDetailsContentController implements AccessPointController.A
              resId = iconGroup.dataContentDescription;
          }
  
--        return resId != 0
+-        return resId != 0 ? SubscriptionManager.getResourcesForSubId(context, subId).getString(
+-                resId) : "";
 +        String description = resId != 0
-                 ? SubscriptionManager.getResourcesForSubId(context, subId).getString(resId) : "";
++                ? SubscriptionManager.getResourcesForSubId(context, subId).getString(resId) : "";
 +
 +        if (mShowFourgIcon && !description.isEmpty()) {
 +            description = convertLteToFourg(description);
@@ -88,7 +89,7 @@ index f6ec7e6c7..1e50ed54a 100644
      }
  
      private String getMobileSummary(Context context, String networkTypeDescription, int subId) {
-@@ -1651,4 +1675,20 @@ public class InternetDetailsContentController implements AccessPointController.A
+@@ -1585,4 +1609,20 @@ public class InternetDetailsContentController implements AccessPointController.A
          WifiDppIntentHelper.setConfiguratorIntentExtra(intent, mWifiManager, wifiConfiguration);
          return intent;
      }
@@ -163,21 +164,24 @@ index 087f9ac29..08227ef12 100644
 +    }
  }
 diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt b/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
-index 34ba767c2..3d9a445c3 100644
+index 963a33bf6..b274d39d9 100644
 --- a/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
 +++ b/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
-@@ -90,17 +90,22 @@ constructor(
+@@ -92,19 +92,25 @@ constructor(
              if (it == null) {
                  flowOf(null)
              } else {
 -                combine(it.isRoaming, it.networkTypeIconGroup) { isRoaming, networkTypeIconGroup ->
 +                combine(it.isRoaming, it.networkTypeIconGroup, it.shouldShowFourgIcon) { isRoaming, networkTypeIconGroup, shouldShowFourgIcon ->
-                     val cd = loadString(networkTypeIconGroup.contentDescription)
-+                    val convertedCd = if (shouldShowFourgIcon && cd != null) {
-+                        convertLteToFourg(cd.toString())
-+                    } else {
-+                        cd
-+                    }
+                     val mobileContext =
+                         mobileContextProvider.getMobileContextForSub(it.subscriptionId, context)
+                     val cd = loadString(networkTypeIconGroup.contentDescription, mobileContext)
++                    val convertedCd =
++                        if (shouldShowFourgIcon && cd != null) {
++                            convertLteToFourg(cd.toString())
++                        } else {
++                            cd
++                        }
                      if (isRoaming) {
                          val roaming = context.getString(R.string.data_connection_roaming)
 -                        if (cd != null) {
@@ -193,7 +197,7 @@ index 34ba767c2..3d9a445c3 100644
                      }
                  }
              }
-@@ -262,5 +267,16 @@ constructor(
+@@ -266,5 +272,16 @@ constructor(
                  is ContentDescription.Loaded -> Text.Loaded(this.description)
                  is ContentDescription.Resource -> Text.Resource(this.res)
              }
@@ -211,5 +215,5 @@ index 34ba767c2..3d9a445c3 100644
      }
  }
 -- 
-2.51.0
+2.39.5
 
