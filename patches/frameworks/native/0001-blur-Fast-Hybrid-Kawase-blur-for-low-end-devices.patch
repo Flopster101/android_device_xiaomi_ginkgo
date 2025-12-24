@@ -1,0 +1,119 @@
+From 12413e1946d92d918d338990163e48b36de0d9d1 Mon Sep 17 00:00:00 2001
+From: Flopster101 <nahuelgomez329@gmail.com>
+Date: Wed, 24 Dec 2025 18:10:42 +0000
+Subject: [PATCH] blur: Fast Hybrid Kawase blur for low-end devices
+
+Simplified Kawase blur with 1/8th input resolution scale, 3 passes.
+
+Uses alternating diagonal/axis passes to fix square artifacts on low resolution.
+
+Set this prop to use it:
+debug.renderengine.blur_algorithm=kawase
+
+If blur is broken, make sure to use SkiaVK:
+debug.renderengine.backend=skiavkthreaded
+---
+ libs/renderengine/skia/filters/BlurFilter.h   |  2 +-
+ .../skia/filters/KawaseBlurFilter.cpp         | 34 +++++++++++++++----
+ .../skia/filters/KawaseBlurFilter.h           |  3 +-
+ 3 files changed, 31 insertions(+), 8 deletions(-)
+
+diff --git a/libs/renderengine/skia/filters/BlurFilter.h b/libs/renderengine/skia/filters/BlurFilter.h
+index 68924d979e..c10cfdbdbc 100644
+--- a/libs/renderengine/skia/filters/BlurFilter.h
++++ b/libs/renderengine/skia/filters/BlurFilter.h
+@@ -33,7 +33,7 @@ namespace skia {
+ class BlurFilter {
+ public:
+     // Downsample FBO to improve performance
+-    static constexpr float kInputScale = 0.25f;
++    static constexpr float kInputScale = 0.125f;
+     // Downsample scale factor used to improve performance
+     static constexpr float kInverseInputScale = 1.0f / kInputScale;
+ 
+diff --git a/libs/renderengine/skia/filters/KawaseBlurFilter.cpp b/libs/renderengine/skia/filters/KawaseBlurFilter.cpp
+index 8e09fad4a4..ebe2d7ac54 100644
+--- a/libs/renderengine/skia/filters/KawaseBlurFilter.cpp
++++ b/libs/renderengine/skia/filters/KawaseBlurFilter.cpp
+@@ -47,18 +47,35 @@ KawaseBlurFilter::KawaseBlurFilter(RuntimeEffectManager& effectManager)
+         "uniform float in_blurOffset;"
+ 
+         "half4 main(float2 xy) {"
+-            "half4 c = child.eval(xy);"
+-            "c += child.eval(xy + float2(+in_blurOffset, +in_blurOffset));"
++            "half4 c = child.eval(xy + float2(+in_blurOffset, +in_blurOffset));"
+             "c += child.eval(xy + float2(+in_blurOffset, -in_blurOffset));"
+             "c += child.eval(xy + float2(-in_blurOffset, -in_blurOffset));"
+             "c += child.eval(xy + float2(-in_blurOffset, +in_blurOffset));"
+-            "return half4(c.rgb * 0.2, 1.0);"
++            "return half4(c.rgb * 0.25, 1.0);"
+         "}");
+ 
+     mBlurEffect =
+             effectManager
+                     .createAndStoreRuntimeEffect(RuntimeEffectManager::KnownId::kKawaseBlurEffect,
+                                                  "KawaseBlurEffect", blurString);
++
++    SkString blurStringXY(
++        "uniform shader child;"
++        "uniform float in_blurOffset;"
++
++        "half4 main(float2 xy) {"
++            "half4 c = child.eval(xy + float2(in_blurOffset, 0));"
++            "c += child.eval(xy + float2(-in_blurOffset, 0));"
++            "c += child.eval(xy + float2(0, in_blurOffset));"
++            "c += child.eval(xy + float2(0, -in_blurOffset));"
++            "return half4(c.rgb * 0.25, 1.0);"
++        "}");
++
++    auto [effect, error] = SkRuntimeEffect::MakeForShader(blurStringXY);
++    if (!effect) {
++        LOG_ALWAYS_FATAL("RuntimeShader error: %s", error.c_str());
++    }
++    mBlurEffectXY = effect;
+ }
+ 
+ // Draws the given runtime shader on a GPU (Ganesh) surface and returns the result as an
+@@ -124,10 +141,15 @@ sk_sp<SkImage> KawaseBlurFilter::generate(SkiaGpuContext* context, const uint32_
+ 
+         for (auto i = 1; i < numberOfPasses; i++) {
+             LOG_ALWAYS_FATAL_IF(tmpBlur == nullptr, "%s: tmpBlur is null for pass %d", __func__, i);
+-            blurBuilder.child("child") =
++
++            // Alternate between Diagonal (X) and Axis (XY/+) filters to reduce square artifacts
++            sk_sp<SkRuntimeEffect> effect = (i % 2 == 1) ? mBlurEffectXY : mBlurEffect;
++            SkRuntimeShaderBuilder loopBuilder(effect);
++
++            loopBuilder.child("child") =
+                     tmpBlur->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear);
+-            blurBuilder.uniform("in_blurOffset") = (float) i * radiusByPasses * kInputScale;
+-            tmpBlur = makeImage(surfaceTwo.get(), &blurBuilder);
++            loopBuilder.uniform("in_blurOffset") = (float) (i + 1) * radiusByPasses * kInputScale;
++            tmpBlur = makeImage(surfaceTwo.get(), &loopBuilder);
+             using std::swap;
+             swap(surface, surfaceTwo);
+         }
+diff --git a/libs/renderengine/skia/filters/KawaseBlurFilter.h b/libs/renderengine/skia/filters/KawaseBlurFilter.h
+index 8d8b9655a2..861b4b57ce 100644
+--- a/libs/renderengine/skia/filters/KawaseBlurFilter.h
++++ b/libs/renderengine/skia/filters/KawaseBlurFilter.h
+@@ -38,7 +38,7 @@ namespace skia {
+ class KawaseBlurFilter: public BlurFilter {
+ public:
+     // Maximum number of render passes
+-    static constexpr uint32_t kMaxPasses = 4;
++    static constexpr uint32_t kMaxPasses = 3;
+ 
+     explicit KawaseBlurFilter(RuntimeEffectManager& effectManager);
+     virtual ~KawaseBlurFilter(){}
+@@ -49,6 +49,7 @@ public:
+ 
+ private:
+     sk_sp<SkRuntimeEffect> mBlurEffect;
++    sk_sp<SkRuntimeEffect> mBlurEffectXY;
+ };
+ 
+ } // namespace skia
+-- 
+2.39.5
+

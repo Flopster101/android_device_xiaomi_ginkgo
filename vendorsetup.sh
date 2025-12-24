@@ -54,3 +54,11 @@ if grep -q "GoogleSans-" "vendor/google/pixel/pixel-vendor.mk"; then
     git am -3 "$SCRIPTS_ROOT/patches/vendor_google/0001-pixel-Remove-Google-Sans-UI-fonts.patch"
   )
 fi
+
+echo "-> Checking for frameworks/native patches to apply..."
+if ! grep -q "kMaxPasses = 3" "frameworks/native/libs/renderengine/skia/filters/KawaseBlurFilter.h"; then
+  (
+    cd "frameworks/native"
+    git am -3 "$SCRIPTS_ROOT/patches/frameworks/native/0001-blur-Fast-Hybrid-Kawase-blur-for-low-end-devices.patch"
+  )
+fi
