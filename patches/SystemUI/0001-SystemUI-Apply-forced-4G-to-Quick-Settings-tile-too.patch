@@ -1,4 +1,4 @@
-From d31963274e43ed62970dc82c55806290dece63bf Mon Sep 17 00:00:00 2001
+From ea6dc763fceca774a01f5d0b079d14e1470cc7be Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Sun, 5 Oct 2025 14:42:00 -0300
 Subject: [PATCH] SystemUI: Apply forced 4G to Quick Settings tile too
@@ -9,15 +9,15 @@ consistently across the UI.
 Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
 ---
  .../InternetDetailsContentController.java     | 46 +++++++++++++++++--
- .../connectivity/MobileSignalController.java  | 23 ++++++++++
+ .../connectivity/MobileSignalController.java  | 26 ++++++++++-
  .../ui/viewmodel/InternetTileViewModel.kt     | 25 ++++++++--
- 3 files changed, 87 insertions(+), 7 deletions(-)
+ 3 files changed, 89 insertions(+), 8 deletions(-)
 
 diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java b/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java
-index 2bd64c2b8..8f515d2d4 100644
+index d07e32a1b..de041f0d9 100644
 --- a/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java
 +++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/dialog/InternetDetailsContentController.java
-@@ -96,6 +96,8 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
+@@ -100,6 +100,8 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
  import com.android.systemui.statusbar.policy.LocationController;
  import com.android.systemui.toast.SystemUIToast;
  import com.android.systemui.toast.ToastFactory;
@@ -26,7 +26,7 @@ index 2bd64c2b8..8f515d2d4 100644
  import com.android.systemui.util.CarrierConfigTracker;
  import com.android.systemui.util.settings.GlobalSettings;
  import com.android.wifitrackerlib.HotspotNetworkEntry;
-@@ -121,7 +123,7 @@ import javax.inject.Inject;
+@@ -125,7 +127,7 @@ import javax.inject.Inject;
  /**
   * Controller for Internet Dialog.
   */
@@ -35,7 +35,7 @@ index 2bd64c2b8..8f515d2d4 100644
  
      private static final String TAG = "InternetDetailsContentController";
      private static final String ACTION_WIFI_SCANNING_SETTINGS =
-@@ -137,6 +139,8 @@ public class InternetDetailsContentController implements AccessPointController.A
+@@ -141,6 +143,8 @@ public class InternetDetailsContentController implements AccessPointController.A
      private static final String SETTINGS_EXTRA_SHOW_FRAGMENT_ARGUMENTS =
              ":settings:show_fragment_args";
      private static final String AUTO_DATA_SWITCH_SETTING_R_ID = "auto_data_switch";
@@ -44,7 +44,7 @@ index 2bd64c2b8..8f515d2d4 100644
      public static final Drawable EMPTY_DRAWABLE = new ColorDrawable(Color.TRANSPARENT);
      public static final int NO_CELL_DATA_TYPE_ICON = 0;
      private static final int SUBTITLE_TEXT_WIFI_IS_OFF = R.string.wifi_is_off;
-@@ -187,6 +191,7 @@ public class InternetDetailsContentController implements AccessPointController.A
+@@ -191,6 +195,7 @@ public class InternetDetailsContentController implements AccessPointController.A
      private Handler mHandler;
      private Handler mWorkerHandler;
      private MobileMappings.Config mConfig = null;
@@ -52,9 +52,9 @@ index 2bd64c2b8..8f515d2d4 100644
      private Executor mExecutor;
      private AccessPointController mAccessPointController;
      private IntentFilter mConnectionStateFilter;
-@@ -322,6 +327,19 @@ public class InternetDetailsContentController implements AccessPointController.A
-         mConnectedWifiInternetMonitor = new ConnectedWifiInternetMonitor();
-         mWifiStateWorker = wifiStateWorker;
+@@ -352,6 +357,19 @@ public class InternetDetailsContentController implements AccessPointController.A
+         mHotspotController = hotspotController;
+         mPolicyManager = NetworkPolicyManager.from(context);
          mFeatureFlags = featureFlags;
 +        TunerService tunerService = Dependency.get(TunerService.class);
 +        tunerService.addTunable(this, SHOW_FOURG_ICON);
@@ -72,7 +72,7 @@ index 2bd64c2b8..8f515d2d4 100644
      }
  
      void onStart(@NonNull InternetDialogCallback callback, boolean canConfigWifi) {
-@@ -789,8 +807,14 @@ public class InternetDetailsContentController implements AccessPointController.A
+@@ -823,8 +841,14 @@ public class InternetDetailsContentController implements AccessPointController.A
              resId = iconGroup.dataContentDescription;
          }
  
@@ -85,11 +85,11 @@ index 2bd64c2b8..8f515d2d4 100644
 +            description = convertLteToFourg(description);
 +        }
 +
-+        return description;
++        return description; 
      }
  
      private String getMobileSummary(Context context, String networkTypeDescription, int subId) {
-@@ -1585,4 +1609,20 @@ public class InternetDetailsContentController implements AccessPointController.A
+@@ -1689,4 +1713,20 @@ public class InternetDetailsContentController implements AccessPointController.A
          WifiDppIntentHelper.setConfiguratorIntentExtra(intent, mWifiManager, wifiConfiguration);
          return intent;
      }
@@ -111,7 +111,7 @@ index 2bd64c2b8..8f515d2d4 100644
 +    }
  }
 diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/connectivity/MobileSignalController.java b/packages/SystemUI/src/com/android/systemui/statusbar/connectivity/MobileSignalController.java
-index 087f9ac29..08227ef12 100644
+index 087f9ac29..0f40f65df 100644
 --- a/packages/SystemUI/src/com/android/systemui/statusbar/connectivity/MobileSignalController.java
 +++ b/packages/SystemUI/src/com/android/systemui/statusbar/connectivity/MobileSignalController.java
 @@ -84,6 +84,7 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
@@ -122,7 +122,7 @@ index 087f9ac29..08227ef12 100644
  
      private MobileIconGroup mDefaultIcons;
      private Config mConfig;
-@@ -187,6 +188,7 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
+@@ -187,10 +188,11 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
                  updateTelephony();
                  break;
              case SHOW_FOURG_ICON:
@@ -130,6 +130,11 @@ index 087f9ac29..08227ef12 100644
                  mConfig = Config.readConfig(mContext);
                  setConfiguration(mConfig);
                  notifyListeners();
+-                break;
++                break; 
+             default:
+                 break;
+         }
 @@ -310,6 +312,9 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
                  dataContentDescriptionHtml.toString(), 0).toString();
          if (mCurrentState.inetCondition == 0) {
@@ -140,7 +145,7 @@ index 087f9ac29..08227ef12 100644
          }
  
          int iconId = mCurrentState.getNetworkTypeIcon(mContext);
-@@ -655,4 +660,22 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
+@@ -655,4 +660,23 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
                      + " icon=" + icon;
          }
      }
@@ -163,8 +168,9 @@ index 087f9ac29..08227ef12 100644
 +        return description;
 +    }
  }
++
 diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt b/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
-index 963a33bf6..b274d39d9 100644
+index 963a33bf6..62ff1f9a0 100644
 --- a/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
 +++ b/packages/SystemUI/src/com/android/systemui/statusbar/pipeline/shared/ui/viewmodel/InternetTileViewModel.kt
 @@ -92,19 +92,25 @@ constructor(
@@ -197,23 +203,24 @@ index 963a33bf6..b274d39d9 100644
                      }
                  }
              }
-@@ -266,5 +272,16 @@ constructor(
-                 is ContentDescription.Loaded -> Text.Loaded(this.description)
-                 is ContentDescription.Resource -> Text.Resource(this.res)
-             }
-+
-+        private fun convertLteToFourg(description: String): String {
-+            // Convert LTE to 4G in the text
-+            if (description.contains("LTE")) {
-+                return description.replace("LTE", "4G")
-+            }
-+            if (description.contains("LTE+")) {
-+                return description.replace("LTE+", "4G+")
-+            }
-+            return description
+@@ -176,6 +182,17 @@ constructor(
+             null
+         }
+ 
++    private fun convertLteToFourg(description: String): String {
++        // Convert LTE to 4G in the text
++        if (description.contains("LTE")) {
++            return description.replace("LTE", "4G")
 +        }
-     }
- }
++        if (description.contains("LTE+")) {
++            return description.replace("LTE+", "4G+")
++        }
++        return description
++    }
++
+     private val ethernetIconFlow: Flow<InternetTileModel> =
+         ethernetInteractor.icon.flatMapLatest {
+             if (it == null) {
 -- 
-2.39.5
+2.48.1
 
