@@ -80,8 +80,8 @@ if [ "$SKIP_SBC_HD_PATCHES" != "1" ]; then
     )
   fi
 
-  # frameworks/base patches (strings for channel mode and toggle)
-  if ! grep -q "bluetooth_a2dp_codec_channel_mode_dual_channel" "frameworks/base/packages/SettingsLib/res/values/strings.xml"; then
+  # SettingsLib patches (strings for channel mode and toggle)
+  if ! grep -qF "Dual Channel (SBC HD)" "frameworks/base/packages/SettingsLib/res/values/arrays.xml" || ! grep -qF "bluetooth_enable_sbc_hd" "frameworks/base/packages/SettingsLib/res/values/strings.xml"; then
     (
       cd "frameworks/base"
       git am -3 "$SCRIPTS_ROOT/patches/SBC_HD/frameworks_base/0001-Add-Dual-Channel-SBC-HD-to-Bluetooth-Audio-Channel-Mode-strings.patch"
