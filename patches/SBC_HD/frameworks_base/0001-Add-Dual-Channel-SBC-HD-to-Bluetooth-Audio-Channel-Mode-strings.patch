@@ -1,17 +1,9 @@
-From 7e4cb2fe2bbc97da383d0324bdea557422627f16 Mon Sep 17 00:00:00 2001
-From: ValdikSS <iam@valdikss.org.ru>
-Date: Tue, 20 Jan 2026 07:14:18 +0300
+From 884cafdd0a5e7e23d0aef0a662fa87aef6e7c34c Mon Sep 17 00:00:00 2001
+From: Flopster101 <nahuelgomez329@gmail.com>
+Date: Wed, 28 Jan 2026 15:59:46 +0300
 Subject: [PATCH] Add Dual Channel (SBC HD) to Bluetooth Audio Channel Mode
  strings
 
-Add "Dual Channel (SBC HD)" option to the bluetooth_a2dp_codec_channel_mode
-string arrays for display in Developer Options.
-
-Adapted for Android 16 QPR1 from LineageOS patches.
-
-Co-authored-by: Flopster101 <nahuelgomez329@gmail.com>
-Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
-Change-Id: Ia5df9e8bc2f39c12d4e18c7f31e5a8b52c94d3ef
 ---
  packages/SettingsLib/res/values-en-rGB/arrays.xml | 2 ++
  packages/SettingsLib/res/values/arrays.xml        | 2 ++

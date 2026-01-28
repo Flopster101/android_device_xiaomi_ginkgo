@@ -1,22 +1,17 @@
-From c523241f0239a5ff2839e97ccda7f1beddaa5190 Mon Sep 17 00:00:00 2001
+From e31590e3f93551f3ca914dc28d99801081466d29 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
-Date: Wed, 21 Jan 2026 15:53:57 +0300
+Date: Wed, 28 Jan 2026 16:00:56 +0300
 Subject: [PATCH] SettingsLib: Add SBC HD toggle strings
 
-Add string resources for the SBC HD Developer Options toggles:
-- bluetooth_enable_sbc_hd / bluetooth_enable_sbc_hd_summary
-- bluetooth_sbc_hd_force_max_bitrate / bluetooth_sbc_hd_force_max_bitrate_summary
-
-Change-Id: I4e9fc0e2f3679849dea8d0d8bc3fef603ee34b21
 ---
  packages/SettingsLib/res/values/strings.xml | 8 ++++++++
  1 file changed, 8 insertions(+)
 
 diff --git a/packages/SettingsLib/res/values/strings.xml b/packages/SettingsLib/res/values/strings.xml
-index 833572ffaf58..0b13c432b0bb 100644
+index bdc08f6949d0..7bdabadd515a 100644
 --- a/packages/SettingsLib/res/values/strings.xml
 +++ b/packages/SettingsLib/res/values/strings.xml
-@@ -830,6 +830,14 @@
+@@ -850,6 +850,14 @@
      <string name="bluetooth_show_devices_without_names_summary">Bluetooth devices without names (MAC addresses only) will be displayed</string>
      <!-- Summary of checkbox for disabling Bluetooth absolute volume -->
      <string name="bluetooth_disable_absolute_volume_summary">Disables the Bluetooth absolute volume feature in case of volume issues with remote devices such as unacceptably loud volume or lack of control.</string>

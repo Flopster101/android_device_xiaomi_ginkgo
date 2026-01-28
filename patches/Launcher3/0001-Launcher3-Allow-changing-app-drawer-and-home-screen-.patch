@@ -1,4 +1,4 @@
-From d25d019c8c95a931752fad6e748bb50701f31d73 Mon Sep 17 00:00:00 2001
+From bffeded9cdde5bb4fbb04fe966d4c97b970e2d99 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Mon, 29 Dec 2025 02:07:49 +0000
 Subject: [PATCH] Launcher3: Allow changing app drawer and home screen grid
@@ -8,18 +8,18 @@ Subject: [PATCH] Launcher3: Allow changing app drawer and home screen grid
  res/values/cr_strings.xml                     | 36 +++++++++++++++++++
  res/xml/launcher_app_drawer_preferences.xml   | 10 ++++++
  res/xml/launcher_home_screen_preferences.xml  | 10 ++++++
- .../launcher3/InvariantDeviceProfile.java     | 31 ++++++++++++++--
+ .../launcher3/InvariantDeviceProfile.java     | 33 +++++++++++++++--
  src/com/android/launcher3/LauncherPrefs.kt    |  2 ++
  src/com/android/launcher3/Utilities.java      |  8 +++++
  .../launcher3/settings/SettingsAppDrawer.java |  3 +-
  .../settings/SettingsHomescreen.java          |  3 +-
- 8 files changed, 99 insertions(+), 4 deletions(-)
+ 8 files changed, 100 insertions(+), 5 deletions(-)
 
 diff --git a/res/values/cr_strings.xml b/res/values/cr_strings.xml
-index 3956789e8d..8f0afd3aa6 100644
+index de7a760..0d3f434 100644
 --- a/res/values/cr_strings.xml
 +++ b/res/values/cr_strings.xml
-@@ -416,4 +416,40 @@
+@@ -401,4 +401,40 @@
      <!-- Background blur -->
      <string name="background_blur_title">Background blur depth</string>
      <string name="background_blur_summary">Set blur depth level for recents and app drawer</string>
@@ -61,7 +61,7 @@ index 3956789e8d..8f0afd3aa6 100644
 +     </string-array>
  </resources>
 diff --git a/res/xml/launcher_app_drawer_preferences.xml b/res/xml/launcher_app_drawer_preferences.xml
-index 7a9f334b95..39f28f77bb 100644
+index 7a9f334..39f28f7 100644
 --- a/res/xml/launcher_app_drawer_preferences.xml
 +++ b/res/xml/launcher_app_drawer_preferences.xml
 @@ -80,4 +80,14 @@
@@ -80,7 +80,7 @@ index 7a9f334b95..39f28f77bb 100644
 +
  </androidx.preference.PreferenceScreen>
 diff --git a/res/xml/launcher_home_screen_preferences.xml b/res/xml/launcher_home_screen_preferences.xml
-index efebcf0052..c48228f2dc 100644
+index c35398b..df04f3d 100644
 --- a/res/xml/launcher_home_screen_preferences.xml
 +++ b/res/xml/launcher_home_screen_preferences.xml
 @@ -32,6 +32,16 @@
@@ -101,19 +101,19 @@ index efebcf0052..c48228f2dc 100644
              android:key="pref_add_icon_to_home"
              android:title="@string/auto_add_shortcuts_label"
 diff --git a/src/com/android/launcher3/InvariantDeviceProfile.java b/src/com/android/launcher3/InvariantDeviceProfile.java
-index c5447bb70a..3216cf9bbe 100644
+index 9a4bd39..0ae6958 100644
 --- a/src/com/android/launcher3/InvariantDeviceProfile.java
 +++ b/src/com/android/launcher3/InvariantDeviceProfile.java
-@@ -287,7 +287,7 @@ public class InvariantDeviceProfile {
-         mPrefs = prefs;
+@@ -297,7 +297,7 @@ public class InvariantDeviceProfile {
          mThemeManager = themeManager;
+         mMainExecutor = mainExecutor;
  
 -        String gridName = prefs.get(GRID_NAME);
 +        String gridName = getCurrentGridName(context);
-         initGrid(context, gridName);
+         initGrid(gridName);
+         mThemeManager.generateIconShape(iconBitmapSize);
  
-         dc.setPriorityListener(
-@@ -454,6 +454,9 @@ public class InvariantDeviceProfile {
+@@ -463,6 +463,9 @@ public class InvariantDeviceProfile {
          numDatabaseAllAppsColumns = deviceType == TYPE_MULTI_DISPLAY
                  ? closestProfile.numDatabaseAllAppsColumns : closestProfile.numAllAppsColumns;
  
@@ -123,19 +123,21 @@ index c5447bb70a..3216cf9bbe 100644
          allAppsCellSize = displayOption.allAppsCellSize;
          allAppsBorderSpaces = displayOption.allAppsBorderSpaces;
          allAppsIconSize = displayOption.allAppsIconSizes;
-@@ -555,7 +558,7 @@ public class InvariantDeviceProfile {
+@@ -560,8 +563,7 @@ public class InvariantDeviceProfile {
+     private void onConfigChanged() {
          Object[] oldState = toModelState();
  
-         // Re-init grid
--        initGrid(context, mPrefs.get(GRID_NAME));
-+        initGrid(context, getCurrentGridName(context));
+-        // Re-init grid
+-        initGrid(mPrefs.get(GRID_NAME));
++        initGrid(getCurrentGridName(mDisplayController.getInfo().context));
  
          boolean modelPropsChanged = !Arrays.equals(oldState, toModelState());
          for (OnIDPChangeListener listener : mChangeListeners) {
-@@ -1420,6 +1423,14 @@ public class InvariantDeviceProfile {
+@@ -1790,4 +1792,29 @@ public class InvariantDeviceProfile {
+             return this;
          }
      }
- 
++
 +    public static String getCurrentGridName(Context context) {
 +        String customGridSize = Utilities.getHomescreenGridSize(context);
 +        if (!"auto".equals(customGridSize)) {
@@ -144,13 +146,6 @@ index c5447bb70a..3216cf9bbe 100644
 +        return LauncherPrefs.get(context).get(GRID_NAME);
 +    }
 +
-     @VisibleForTesting
-     static final class DisplayOption {
-         public final GridOption grid;
-@@ -1772,4 +1783,20 @@ public class InvariantDeviceProfile {
-             return this;
-         }
-     }
 +    private void applyCustomAppDrawerGridSize(Context context) {
 +        String customGridSize = Utilities.getAppDrawerGridSize(context);
 +        if (!"auto".equals(customGridSize)) {
@@ -169,11 +164,11 @@ index c5447bb70a..3216cf9bbe 100644
 +    }
  }
 diff --git a/src/com/android/launcher3/LauncherPrefs.kt b/src/com/android/launcher3/LauncherPrefs.kt
-index 2769a92103..dd71c16a60 100644
+index cbae64a..4a14927 100644
 --- a/src/com/android/launcher3/LauncherPrefs.kt
 +++ b/src/com/android/launcher3/LauncherPrefs.kt
-@@ -287,6 +287,8 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
-         @JvmField val PROMISE_ICON_IDS = nonRestorableItem(InstallSessionHelper.PROMISE_ICON_IDS, "")
+@@ -309,6 +309,8 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
+         val PROMISE_ICON_IDS = nonRestorableItem(InstallSessionHelper.PROMISE_ICON_IDS, "")
          @JvmField val WALLPAPER_SCROLLING = backedUpItem("pref_allow_wallpaper_scrolling", true)
          @JvmField val WORK_EDU_STEP = backedUpItem("showed_work_profile_edu", 0)
 +        @JvmField val HOMESCREEN_GRID_SIZE = backedUpItem("pref_homescreen_grid_size", "auto")
@@ -182,10 +177,10 @@ index 2769a92103..dd71c16a60 100644
          val WORKSPACE_SIZE =
              backedUpItem(DeviceGridState.KEY_WORKSPACE_SIZE, "", EncryptionType.ENCRYPTED)
 diff --git a/src/com/android/launcher3/Utilities.java b/src/com/android/launcher3/Utilities.java
-index 39e8c2863a..161bd325bb 100644
+index 16933bc..6c53e82 100644
 --- a/src/com/android/launcher3/Utilities.java
 +++ b/src/com/android/launcher3/Utilities.java
-@@ -1153,4 +1153,12 @@ public final class Utilities {
+@@ -1205,4 +1205,12 @@ public final class Utilities {
      public static void startLmoFreeform(Context context, ComponentName activity) {
          startLmoFreeform(context, activity, UserHandle.myUserId());
      }
@@ -199,7 +194,7 @@ index 39e8c2863a..161bd325bb 100644
 +    }
  }
 diff --git a/src/com/android/launcher3/settings/SettingsAppDrawer.java b/src/com/android/launcher3/settings/SettingsAppDrawer.java
-index ac5fcc938c..36e8f27004 100644
+index ac5fcc9..36e8f27 100644
 --- a/src/com/android/launcher3/settings/SettingsAppDrawer.java
 +++ b/src/com/android/launcher3/settings/SettingsAppDrawer.java
 @@ -114,7 +114,8 @@ public class SettingsAppDrawer extends CollapsingToolbarBaseActivity
@@ -213,7 +208,7 @@ index ac5fcc938c..36e8f27004 100644
          }
      }
 diff --git a/src/com/android/launcher3/settings/SettingsHomescreen.java b/src/com/android/launcher3/settings/SettingsHomescreen.java
-index 44e262ee9d..3eb9b33711 100644
+index 44e262e..3eb9b33 100644
 --- a/src/com/android/launcher3/settings/SettingsHomescreen.java
 +++ b/src/com/android/launcher3/settings/SettingsHomescreen.java
 @@ -133,7 +133,8 @@ public class SettingsHomescreen extends CollapsingToolbarBaseActivity
@@ -227,5 +222,5 @@ index 44e262ee9d..3eb9b33711 100644
          }
      }
 -- 
-2.39.5
+2.48.1
 

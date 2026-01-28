@@ -1,4 +1,4 @@
-From 12413e1946d92d918d338990163e48b36de0d9d1 Mon Sep 17 00:00:00 2001
+From 13456dc5bdc370c2466d5ca87d5ec9f4209262aa Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Wed, 24 Dec 2025 18:10:42 +0000
 Subject: [PATCH] blur: Fast Hybrid Kawase blur for low-end devices
@@ -14,12 +14,12 @@ If blur is broken, make sure to use SkiaVK:
 debug.renderengine.backend=skiavkthreaded
 ---
  libs/renderengine/skia/filters/BlurFilter.h   |  2 +-
- .../skia/filters/KawaseBlurFilter.cpp         | 34 +++++++++++++++----
+ .../skia/filters/KawaseBlurFilter.cpp         | 42 ++++++++++++++-----
  .../skia/filters/KawaseBlurFilter.h           |  3 +-
- 3 files changed, 31 insertions(+), 8 deletions(-)
+ 3 files changed, 35 insertions(+), 12 deletions(-)
 
 diff --git a/libs/renderengine/skia/filters/BlurFilter.h b/libs/renderengine/skia/filters/BlurFilter.h
-index 68924d979e..c10cfdbdbc 100644
+index 68924d9..c10cfdb 100644
 --- a/libs/renderengine/skia/filters/BlurFilter.h
 +++ b/libs/renderengine/skia/filters/BlurFilter.h
 @@ -33,7 +33,7 @@ namespace skia {
@@ -32,27 +32,30 @@ index 68924d979e..c10cfdbdbc 100644
      static constexpr float kInverseInputScale = 1.0f / kInputScale;
  
 diff --git a/libs/renderengine/skia/filters/KawaseBlurFilter.cpp b/libs/renderengine/skia/filters/KawaseBlurFilter.cpp
-index 8e09fad4a4..ebe2d7ac54 100644
+index 7a1246c..a9dd3e2 100644
 --- a/libs/renderengine/skia/filters/KawaseBlurFilter.cpp
 +++ b/libs/renderengine/skia/filters/KawaseBlurFilter.cpp
-@@ -47,18 +47,35 @@ KawaseBlurFilter::KawaseBlurFilter(RuntimeEffectManager& effectManager)
+@@ -45,17 +45,34 @@ const SkString kEffectSource_KawaseBlurEffect(
          "uniform float in_blurOffset;"
  
          "half4 main(float2 xy) {"
--            "half4 c = child.eval(xy);"
--            "c += child.eval(xy + float2(+in_blurOffset, +in_blurOffset));"
+-        "half4 c = child.eval(xy);"
+-        "c += child.eval(xy + float2(+in_blurOffset, +in_blurOffset));"
+-        "c += child.eval(xy + float2(+in_blurOffset, -in_blurOffset));"
+-        "c += child.eval(xy + float2(-in_blurOffset, -in_blurOffset));"
+-        "c += child.eval(xy + float2(-in_blurOffset, +in_blurOffset));"
+-        "return half4(c.rgb * 0.2, 1.0);"
 +            "half4 c = child.eval(xy + float2(+in_blurOffset, +in_blurOffset));"
-             "c += child.eval(xy + float2(+in_blurOffset, -in_blurOffset));"
-             "c += child.eval(xy + float2(-in_blurOffset, -in_blurOffset));"
-             "c += child.eval(xy + float2(-in_blurOffset, +in_blurOffset));"
--            "return half4(c.rgb * 0.2, 1.0);"
++            "c += child.eval(xy + float2(+in_blurOffset, -in_blurOffset));"
++            "c += child.eval(xy + float2(-in_blurOffset, -in_blurOffset));"
++            "c += child.eval(xy + float2(-in_blurOffset, +in_blurOffset));"
 +            "return half4(c.rgb * 0.25, 1.0);"
          "}");
  
-     mBlurEffect =
-             effectManager
-                     .createAndStoreRuntimeEffect(RuntimeEffectManager::KnownId::kKawaseBlurEffect,
-                                                  "KawaseBlurEffect", blurString);
+ KawaseBlurFilter::KawaseBlurFilter(RuntimeEffectManager& effectManager)
+       : BlurFilter(effectManager) {
+-    mBlurEffect = effectManager.mKnownEffects[kKawaseBlurEffect];
++    mBlurEffect = effectManager.getKnownRuntimeEffect(kKawaseBlurEffect);
 +
 +    SkString blurStringXY(
 +        "uniform shader child;"
@@ -74,7 +77,7 @@ index 8e09fad4a4..ebe2d7ac54 100644
  }
  
  // Draws the given runtime shader on a GPU (Ganesh) surface and returns the result as an
-@@ -124,10 +141,15 @@ sk_sp<SkImage> KawaseBlurFilter::generate(SkiaGpuContext* context, const uint32_
+@@ -121,10 +138,15 @@ sk_sp<SkImage> KawaseBlurFilter::generate(SkiaGpuContext* context, const uint32_
  
          for (auto i = 1; i < numberOfPasses; i++) {
              LOG_ALWAYS_FATAL_IF(tmpBlur == nullptr, "%s: tmpBlur is null for pass %d", __func__, i);
@@ -94,7 +97,7 @@ index 8e09fad4a4..ebe2d7ac54 100644
              swap(surface, surfaceTwo);
          }
 diff --git a/libs/renderengine/skia/filters/KawaseBlurFilter.h b/libs/renderengine/skia/filters/KawaseBlurFilter.h
-index 8d8b9655a2..861b4b57ce 100644
+index 8d8b965..861b4b5 100644
 --- a/libs/renderengine/skia/filters/KawaseBlurFilter.h
 +++ b/libs/renderengine/skia/filters/KawaseBlurFilter.h
 @@ -38,7 +38,7 @@ namespace skia {
@@ -115,5 +118,5 @@ index 8d8b9655a2..861b4b57ce 100644
  
  } // namespace skia
 -- 
-2.39.5
+2.48.1
 

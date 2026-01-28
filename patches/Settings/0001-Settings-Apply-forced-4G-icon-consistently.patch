@@ -1,4 +1,4 @@
-From cce0330e65a188ddcea057511e03e51bc0813a23 Mon Sep 17 00:00:00 2001
+From f09c90365e26b906e01da5560cd16dfd7a66a3e6 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Tue, 30 Sep 2025 00:57:53 -0300
 Subject: [PATCH] Settings: Apply forced 4G icon consistently
@@ -15,7 +15,7 @@ Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
  4 files changed, 39 insertions(+), 1 deletion(-)
 
 diff --git a/src/com/android/settings/deviceinfo/simstatus/SimStatusDialogController.java b/src/com/android/settings/deviceinfo/simstatus/SimStatusDialogController.java
-index f86f7ae..1b804fe 100644
+index c24bdc1..a7203fd 100644
 --- a/src/com/android/settings/deviceinfo/simstatus/SimStatusDialogController.java
 +++ b/src/com/android/settings/deviceinfo/simstatus/SimStatusDialogController.java
 @@ -485,6 +485,9 @@ public class SimStatusDialogController implements DefaultLifecycleObserver {
@@ -83,32 +83,32 @@ index 0435ef0..ae157a6 100644
 +
  private const val HTML_TAG = "</"
 diff --git a/src/com/android/settings/network/telephony/EnabledNetworkModePreferenceController.java b/src/com/android/settings/network/telephony/EnabledNetworkModePreferenceController.java
-index af83c89..18a583d 100644
+index 932897e..d94c99f 100644
 --- a/src/com/android/settings/network/telephony/EnabledNetworkModePreferenceController.java
 +++ b/src/com/android/settings/network/telephony/EnabledNetworkModePreferenceController.java
-@@ -24,6 +24,7 @@ import static com.android.settings.network.telephony.mode.NetworkModes.reduceNrT
+@@ -25,6 +25,7 @@ import static com.android.settingslib.RestrictedLockUtils.EnforcedAdmin;
  import android.content.Context;
  import android.content.res.Resources;
  import android.os.PersistableBundle;
 +import android.provider.Settings;
+ import android.os.UserHandle;
+ import android.os.UserManager;
  import android.telephony.CarrierConfigManager;
- import android.telephony.RadioAccessFamily;
- import android.telephony.SubscriptionInfo;
-@@ -320,6 +321,9 @@ public class EnabledNetworkModePreferenceController extends
+@@ -329,6 +330,9 @@ public class EnabledNetworkModePreferenceController extends
                          CarrierConfigManager.KEY_SHOW_CDMA_CHOICES_BOOL);
                  mShow4gForLTE = carrierConfig.getBoolean(
                          CarrierConfigManager.KEY_SHOW_4G_FOR_LTE_DATA_ICON_BOOL);
 +                // Also check system setting for 4G icon preference
 +                mShow4gForLTE = mShow4gForLTE || Settings.System.getInt(
 +                        mContext.getContentResolver(), Settings.System.SHOW_FOURG_ICON, 0) == 1;
-                 mDisplay2gOptions = carrierConfig.getBoolean(
-                         CarrierConfigManager.KEY_PREFER_2G_BOOL);
  
+                 long currentlyAllowedNetworkTypes =
+                         mTelephonyManager.getAllowedNetworkTypesForReason(
 diff --git a/src/com/android/settings/network/telephony/NetworkSelectSettings.java b/src/com/android/settings/network/telephony/NetworkSelectSettings.java
-index 5b2eba2..a49a73b 100644
+index 2cbed4f..e5dd07d 100644
 --- a/src/com/android/settings/network/telephony/NetworkSelectSettings.java
 +++ b/src/com/android/settings/network/telephony/NetworkSelectSettings.java
-@@ -127,6 +127,9 @@ public class NetworkSelectSettings extends DashboardFragment {
+@@ -126,6 +126,9 @@ public class NetworkSelectSettings extends DashboardFragment {
                  CarrierConfigManager.KEY_REMOVE_SATELLITE_PLMN_IN_MANUAL_NETWORK_SCAN_BOOL);
          mShow4GForLTE = bundle.getBoolean(CarrierConfigManager.KEY_SHOW_4G_FOR_LTE_DATA_ICON_BOOL,
                  false);
@@ -119,5 +119,5 @@ index 5b2eba2..a49a73b 100644
                  CarrierConfigManager.KEY_REMOVE_SATELLITE_PLMN_IN_MANUAL_NETWORK_SCAN_BOOL,
                  true));
 -- 
-2.39.5
+2.48.1
 
