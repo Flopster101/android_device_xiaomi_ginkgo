@@ -11,4 +11,5 @@ cc_prebuilt_binary {
         none: true,
     },
     srcs: ["RemovePackagesGinkgo"],
+    check_elf_files: false,
 }
