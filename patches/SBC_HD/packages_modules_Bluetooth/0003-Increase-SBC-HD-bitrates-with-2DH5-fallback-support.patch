@@ -1,7 +1,7 @@
-From fe6c6f3a1bcb33f8f5ee36e4e326e1944d4ccb12 Mon Sep 17 00:00:00 2001
+From 687a6db537db2e37de4f59784cccb2d0e00f77c3 Mon Sep 17 00:00:00 2001
 From: ValdikSS <iam@valdikss.org.ru>
-Date: Tue, 20 Jan 2026 07:13:06 +0300
-Subject: [PATCH 3/3] Increase SBC HD bitrates with 2DH5 fallback support
+Date: Sun, 8 Mar 2026 10:51:44 -0300
+Subject: [PATCH] Increase SBC HD bitrates with 2DH5 fallback support
 
 This commit enables higher bitrates for SBC Dual Channel (SBC HD) mode:
 
@@ -25,53 +25,86 @@ Co-authored-by: Flopster101 <nahuelgomez329@gmail.com>
 Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
 Change-Id: I43f0b48f8b99bfb296c6b5a0b7fdb4d0592f5f82
 ---
- system/stack/a2dp/a2dp_sbc_encoder.cc | 19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ system/stack/a2dp/a2dp_sbc_encoder.cc | 43 +++++++++++++++++++++++++--
+ 1 file changed, 41 insertions(+), 2 deletions(-)
 
 diff --git a/system/stack/a2dp/a2dp_sbc_encoder.cc b/system/stack/a2dp/a2dp_sbc_encoder.cc
-index 76ba4a7..483b738 100644
+index f4b5817..14069f4 100644
 --- a/system/stack/a2dp/a2dp_sbc_encoder.cc
 +++ b/system/stack/a2dp/a2dp_sbc_encoder.cc
-@@ -59,6 +59,14 @@
- #define A2DP_SBC_3DH5_DEFAULT_BITRATE 552
- #define A2DP_SBC_3DH5_48KHZ_BITRATE 601
+@@ -51,7 +51,24 @@
+ /* High quality quality setting @ 44.1 khz */
+ #define A2DP_SBC_DEFAULT_BITRATE 328
  
 +/*
++ * SBC Dual Channel (SBC HD) 3DH5 bitrates.
++ * 601 kbps @ 48 kHz, 552 kbps @ 44.1 kHz.
++ */
++#define A2DP_SBC_3DH5_DEFAULT_BITRATE 552
++#define A2DP_SBC_3DH5_48KHZ_BITRATE 601
++
++/*
 + * SBC Dual Channel (SBC HD) 2DH5 bitrates.
-+ * 492 kbps @ 48 khz, 452 kbps @ 44.1 khz.
++ * 492 kbps @ 48 kHz, 452 kbps @ 44.1 kHz.
 + * Fallback for devices without 3Mbps EDR support.
 + */
 +#define A2DP_SBC_2DH5_DEFAULT_BITRATE 452
 +#define A2DP_SBC_2DH5_48KHZ_BITRATE 492
 +
  #define A2DP_SBC_NON_EDR_MAX_RATE 229
++#define MIN_3MBPS_AVDTP_SAFE_MTU 801
++#define SBC_HD_MAGIC 0x1337
  
  #define A2DP_SBC_MAX_PCM_ITER_NUM_PER_TICK 3
-@@ -771,7 +779,7 @@ static uint8_t calculate_max_frames_per_packet(void) {
+ 
+@@ -100,6 +117,7 @@ typedef struct {
+   a2dp_source_enqueue_callback_t enqueue_callback;
+   uint16_t TxAaMtuSize;
+   uint8_t tx_sbc_frames;
++  bool hd;
+   tA2DP_ENCODER_INIT_PEER_PARAMS peer_params;
+   uint32_t timestamp; /* Timestamp for the A2DP frames */
+   SBC_ENC_PARAMS sbc_encoder_params;
+@@ -213,9 +231,9 @@ static void a2dp_sbc_encoder_update(A2dpCodecConfig* a2dp_codec_config, bool* p_
+ 
+   // Set the initial target bit rate
+   const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params = a2dp_sbc_encoder_cb.peer_params;
+-  p_encoder_params->u16BitRate = a2dp_sbc_source_rate(peer_params.is_peer_edr);
+-
+   a2dp_sbc_encoder_cb.TxAaMtuSize = adjust_effective_mtu(peer_params);
++  a2dp_sbc_encoder_cb.hd = (a2dp_codec_config->getCodecConfig().codec_specific_1 == SBC_HD_MAGIC);
++  p_encoder_params->u16BitRate = a2dp_sbc_source_rate(peer_params.is_peer_edr);
+   log::info("MTU={}, peer_mtu={} min_bitpool={} max_bitpool={}", a2dp_sbc_encoder_cb.TxAaMtuSize,
+             peer_params.peer_mtu, min_bitpool, max_bitpool);
+   log::info(
+@@ -755,6 +773,27 @@ static uint8_t calculate_max_frames_per_packet(void) {
  static uint16_t a2dp_sbc_source_rate(bool is_peer_edr) {
    uint16_t rate = A2DP_SBC_DEFAULT_BITRATE;
  
--  /* check if we're SBC HD */
-+  /* check if we're SBC HD with 3DH5 (highest quality) */
-   if (a2dp_sbc_encoder_cb.hd &&
-       a2dp_sbc_encoder_cb.peer_params.peer_supports_3mbps &&
-       a2dp_sbc_encoder_cb.TxAaMtuSize >= MIN_3MBPS_AVDTP_SAFE_MTU) {
-@@ -779,6 +787,15 @@ static uint16_t a2dp_sbc_source_rate(bool is_peer_edr) {
-     if (a2dp_sbc_encoder_cb.sbc_encoder_params.s16SamplingFreq == SBC_sf48000) {
-       rate = A2DP_SBC_3DH5_48KHZ_BITRATE;
-     }
++  // Check if we're SBC HD with 3DH5 (highest quality).
++  if (a2dp_sbc_encoder_cb.hd && a2dp_sbc_encoder_cb.peer_params.peer_supports_3mbps &&
++      a2dp_sbc_encoder_cb.TxAaMtuSize >= MIN_3MBPS_AVDTP_SAFE_MTU) {
++    rate = A2DP_SBC_3DH5_DEFAULT_BITRATE;
++    if (a2dp_sbc_encoder_cb.sbc_encoder_params.s16SamplingFreq == SBC_sf48000) {
++      rate = A2DP_SBC_3DH5_48KHZ_BITRATE;
++    }
 +    log::info("SBC HD: using 3DH5 bitrate {}", rate);
++    return rate;
 +  }
-+  /* Fallback: SBC HD with 2DH5 for devices without 3Mbps support */
-+  else if (a2dp_sbc_encoder_cb.hd && is_peer_edr) {
++
++  // Fallback: SBC HD with 2DH5 for peers without 3Mbps support.
++  if (a2dp_sbc_encoder_cb.hd && is_peer_edr) {
 +    rate = A2DP_SBC_2DH5_DEFAULT_BITRATE;
 +    if (a2dp_sbc_encoder_cb.sbc_encoder_params.s16SamplingFreq == SBC_sf48000) {
 +      rate = A2DP_SBC_2DH5_48KHZ_BITRATE;
 +    }
 +    log::info("SBC HD: using 2DH5 fallback bitrate {}", rate);
-   }
- 
++    return rate;
++  }
++
    /* restrict bitrate if a2dp link is non-edr */
+   if (!is_peer_edr) {
+     rate = A2DP_SBC_NON_EDR_MAX_RATE;
 -- 
-2.48.1
+2.53.0
 

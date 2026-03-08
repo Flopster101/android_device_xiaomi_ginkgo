@@ -1,4 +1,4 @@
-From e31590e3f93551f3ca914dc28d99801081466d29 Mon Sep 17 00:00:00 2001
+From 97e04ca2e212c40fee3c58e995c75eaf6e46a527 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
 Date: Wed, 28 Jan 2026 16:00:56 +0300
 Subject: [PATCH] SettingsLib: Add SBC HD toggle strings
@@ -8,7 +8,7 @@ Subject: [PATCH] SettingsLib: Add SBC HD toggle strings
  1 file changed, 8 insertions(+)
 
 diff --git a/packages/SettingsLib/res/values/strings.xml b/packages/SettingsLib/res/values/strings.xml
-index bdc08f6949d0..7bdabadd515a 100644
+index bdc08f694..7bdabadd5 100644
 --- a/packages/SettingsLib/res/values/strings.xml
 +++ b/packages/SettingsLib/res/values/strings.xml
 @@ -850,6 +850,14 @@
@@ -27,5 +27,5 @@ index bdc08f6949d0..7bdabadd515a 100644
      <string name="bluetooth_enable_gabeldorsche_summary">Enables the Bluetooth Gabeldorsche feature stack.</string>
  
 -- 
-2.48.1
+2.53.0
 

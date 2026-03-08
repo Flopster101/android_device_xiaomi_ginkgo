@@ -1,6 +1,6 @@
-From f609046721463ab41da3968de3a2a267833c3403 Mon Sep 17 00:00:00 2001
+From 2b38910f15d1ec5a9b8637867d0e5a8189a95a51 Mon Sep 17 00:00:00 2001
 From: Flopster101 <nahuelgomez329@gmail.com>
-Date: Wed, 21 Jan 2026 15:46:46 +0300
+Date: Sun, 8 Mar 2026 10:51:58 -0300
 Subject: [PATCH] Settings: Add SBC HD Developer Options toggles
 
 Add two new toggles in Developer Options for SBC HD audio:
@@ -12,15 +12,15 @@ Both settings require toggling Bluetooth to take effect.
 Change-Id: I339d6055c1cb78f38e90561ea8e77ea528ce095e
 ---
  res/xml/development_settings.xml              | 10 +++
- ...uetoothSbcHdForceMaxBitrateController.java | 71 +++++++++++++++++++
- .../BluetoothSbcHdPreferenceController.java   | 71 +++++++++++++++++++
+ ...uetoothSbcHdForceMaxBitrateController.java | 67 +++++++++++++++++++
+ .../BluetoothSbcHdPreferenceController.java   | 66 ++++++++++++++++++
  .../DevelopmentSettingsDashboardFragment.java |  2 +
- 4 files changed, 154 insertions(+)
+ 4 files changed, 145 insertions(+)
  create mode 100644 src/com/android/settings/development/BluetoothSbcHdForceMaxBitrateController.java
  create mode 100644 src/com/android/settings/development/BluetoothSbcHdPreferenceController.java
 
 diff --git a/res/xml/development_settings.xml b/res/xml/development_settings.xml
-index b0b6eb5..920609d 100644
+index e5eda84..9ff9289 100644
 --- a/res/xml/development_settings.xml
 +++ b/res/xml/development_settings.xml
 @@ -395,6 +395,16 @@
@@ -42,12 +42,12 @@ index b0b6eb5..920609d 100644
              android:title="@string/bluetooth_disable_leaudio"
 diff --git a/src/com/android/settings/development/BluetoothSbcHdForceMaxBitrateController.java b/src/com/android/settings/development/BluetoothSbcHdForceMaxBitrateController.java
 new file mode 100644
-index 0000000..63ae82f
+index 0000000..7737e86
 --- /dev/null
 +++ b/src/com/android/settings/development/BluetoothSbcHdForceMaxBitrateController.java
-@@ -0,0 +1,71 @@
+@@ -0,0 +1,67 @@
 +/*
-+ * Copyright (C) 2024 The Android Open Source Project
++ * Copyright (C) 2026 The PixelOS Project
 + *
 + * Licensed under the Apache License, Version 2.0 (the "License");
 + * you may not use this file except in compliance with the License.
@@ -74,18 +74,14 @@ index 0000000..63ae82f
 +import com.android.settings.core.PreferenceControllerMixin;
 +import com.android.settingslib.development.DeveloperOptionsPreferenceController;
 +
-+/**
-+ * Controller for forcing maximum SBC HD bitrate (551 kbps at 44.1kHz).
-+ * This bypasses the 3Mbps EDR check and forces 3DH5 packets even if the
-+ * device doesn't advertise support. May cause audio dropouts.
-+ */
 +public class BluetoothSbcHdForceMaxBitrateController extends
 +        DeveloperOptionsPreferenceController implements Preference.OnPreferenceChangeListener,
 +        PreferenceControllerMixin {
 +
 +    private static final String BLUETOOTH_SBC_HD_FORCE_MAX_KEY = "bluetooth_sbc_hd_force_max_bitrate";
 +    @VisibleForTesting
-+    static final String BLUETOOTH_SBC_HD_FORCE_MAX_PROPERTY = "persist.bluetooth.sbc_hd.force_max_bitrate";
++    static final String BLUETOOTH_SBC_HD_FORCE_MAX_PROPERTY =
++            "persist.bluetooth.sbc_hd.force_max_bitrate";
 +
 +    public BluetoothSbcHdForceMaxBitrateController(Context context) {
 +        super(context);
@@ -119,12 +115,12 @@ index 0000000..63ae82f
 +}
 diff --git a/src/com/android/settings/development/BluetoothSbcHdPreferenceController.java b/src/com/android/settings/development/BluetoothSbcHdPreferenceController.java
 new file mode 100644
-index 0000000..a6b5dd7
+index 0000000..e312fac
 --- /dev/null
 +++ b/src/com/android/settings/development/BluetoothSbcHdPreferenceController.java
-@@ -0,0 +1,71 @@
+@@ -0,0 +1,66 @@
 +/*
-+ * Copyright (C) 2024 The Android Open Source Project
++ * Copyright (C) 2026 The PixelOS Project
 + *
 + * Licensed under the Apache License, Version 2.0 (the "License");
 + * you may not use this file except in compliance with the License.
@@ -151,11 +147,6 @@ index 0000000..a6b5dd7
 +import com.android.settings.core.PreferenceControllerMixin;
 +import com.android.settingslib.development.DeveloperOptionsPreferenceController;
 +
-+/**
-+ * Controller for enabling SBC HD (Dual Channel) Bluetooth audio mode.
-+ * When enabled, SBC will automatically use Dual Channel mode with higher bitrates,
-+ * prioritized over AAC. Requires toggling Bluetooth to take effect.
-+ */
 +public class BluetoothSbcHdPreferenceController extends
 +        DeveloperOptionsPreferenceController implements Preference.OnPreferenceChangeListener,
 +        PreferenceControllerMixin {
@@ -195,10 +186,10 @@ index 0000000..a6b5dd7
 +    }
 +}
 diff --git a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
-index 8084f7f..5026d40 100644
+index b66bb9d..b5e37ab 100644
 --- a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
 +++ b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
-@@ -773,6 +773,8 @@ public class DevelopmentSettingsDashboardFragment extends RestrictedDashboardFra
+@@ -816,6 +816,8 @@ public class DevelopmentSettingsDashboardFragment extends RestrictedDashboardFra
          controllers.add(new TetheringHardwareAccelPreferenceController(context));
          controllers.add(new BluetoothDeviceNoNamePreferenceController(context));
          controllers.add(new BluetoothAbsoluteVolumePreferenceController(context));
@@ -208,5 +199,5 @@ index 8084f7f..5026d40 100644
          controllers.add(new BluetoothMapVersionPreferenceController(context));
          controllers.add(new BluetoothLeAudioPreferenceController(context, fragment));
 -- 
-2.48.1
+2.53.0
 

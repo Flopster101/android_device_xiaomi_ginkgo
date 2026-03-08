@@ -1,7 +1,7 @@
-From 5b24b5f855c2031bd4ce242ddaaf80c4d45b94fb Mon Sep 17 00:00:00 2001
+From 5efff24dd7921a49b69ef898c9ff58861ff04a7c Mon Sep 17 00:00:00 2001
 From: ValdikSS <iam@valdikss.org.ru>
 Date: Tue, 20 Jan 2026 07:11:53 +0300
-Subject: [PATCH 2/3] Explicit SBC Dual Channel (SBC HD) native stack support
+Subject: [PATCH] Explicit SBC Dual Channel (SBC HD) native stack support
 
 Add BTAV_A2DP_CODEC_CHANNEL_MODE_DUAL_CHANNEL to the native Bluetooth HAL
 and update the SBC codec implementation to properly handle Dual Channel mode.
@@ -32,7 +32,7 @@ Change-Id: I4d51a2cf2f13c5b64ff8f49dc4f74c5c24da4f67
  7 files changed, 57 insertions(+), 4 deletions(-)
 
 diff --git a/system/include/hardware/bt_av.h b/system/include/hardware/bt_av.h
-index 0d3fc04..8d85d9e 100644
+index 9e8e342..6fd2d26 100644
 --- a/system/include/hardware/bt_av.h
 +++ b/system/include/hardware/bt_av.h
 @@ -133,7 +133,8 @@ typedef enum {
@@ -45,7 +45,7 @@ index 0d3fc04..8d85d9e 100644
  } btav_a2dp_codec_channel_mode_t;
  
  typedef enum {
-@@ -220,6 +221,8 @@ struct btav_a2dp_codec_config_t {
+@@ -231,6 +232,8 @@ struct btav_a2dp_codec_config_t {
      AppendCapability(channel_mode_str, (channel_mode & BTAV_A2DP_CODEC_CHANNEL_MODE_MONO), "MONO");
      AppendCapability(channel_mode_str, (channel_mode & BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO),
                       "STEREO");
@@ -80,10 +80,10 @@ index cb19031..7af81ea 100644
        codec_config_.channel_mode = BTAV_A2DP_CODEC_CHANNEL_MODE_NONE;
        break;
 diff --git a/system/stack/a2dp/a2dp_sbc.cc b/system/stack/a2dp/a2dp_sbc.cc
-index 8e9f9ae..072c296 100644
+index e7d6583..c6e2c39 100644
 --- a/system/stack/a2dp/a2dp_sbc.cc
 +++ b/system/stack/a2dp/a2dp_sbc.cc
-@@ -806,7 +806,7 @@ A2dpCodecConfigSbcSource::A2dpCodecConfigSbcSource(btav_a2dp_codec_priority_t co
+@@ -848,7 +848,7 @@ A2dpCodecConfigSbcSource::A2dpCodecConfigSbcSource(btav_a2dp_codec_priority_t co
      codec_local_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
    }
    if (a2dp_sbc_source_caps.ch_mode & A2DP_SBC_IE_CH_MD_DUAL) {
@@ -92,7 +92,7 @@ index 8e9f9ae..072c296 100644
    }
  }
  
-@@ -968,6 +968,16 @@ static bool select_audio_channel_mode(const btav_a2dp_codec_config_t* p_codec_au
+@@ -1010,6 +1010,16 @@ static bool select_audio_channel_mode(const btav_a2dp_codec_config_t* p_codec_au
          return true;
        }
        break;
@@ -109,7 +109,7 @@ index 8e9f9ae..072c296 100644
      case BTAV_A2DP_CODEC_CHANNEL_MODE_NONE:
        break;
    }
-@@ -1157,6 +1167,11 @@ tA2DP_STATUS A2dpCodecConfigSbcBase::setCodecConfig(const uint8_t* p_peer_codec_
+@@ -1199,6 +1209,11 @@ tA2DP_STATUS A2dpCodecConfigSbcBase::setCodecConfig(const uint8_t* p_peer_codec_
          break;
        }
        break;
@@ -121,7 +121,7 @@ index 8e9f9ae..072c296 100644
      case BTAV_A2DP_CODEC_CHANNEL_MODE_NONE:
        codec_config_.channel_mode = BTAV_A2DP_CODEC_CHANNEL_MODE_NONE;
        break;
-@@ -1175,7 +1190,7 @@ tA2DP_STATUS A2dpCodecConfigSbcBase::setCodecConfig(const uint8_t* p_peer_codec_
+@@ -1217,7 +1232,7 @@ tA2DP_STATUS A2dpCodecConfigSbcBase::setCodecConfig(const uint8_t* p_peer_codec_
        codec_selectable_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
      }
      if (ch_mode & A2DP_SBC_IE_CH_MD_DUAL) {
@@ -130,7 +130,7 @@ index 8e9f9ae..072c296 100644
      }
  
      if (codec_config_.channel_mode != BTAV_A2DP_CODEC_CHANNEL_MODE_NONE) {
-@@ -1368,7 +1383,7 @@ bool A2dpCodecConfigSbcBase::setPeerCodecCapabilities(const uint8_t* p_peer_code
+@@ -1415,7 +1430,7 @@ bool A2dpCodecConfigSbcBase::setPeerCodecCapabilities(const uint8_t* p_peer_code
      codec_selectable_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
    }
    if (ch_mode & A2DP_SBC_IE_CH_MD_DUAL) {
@@ -215,7 +215,7 @@ index e73fb1f..d7e6846 100644
        codec_config_.channel_mode = BTAV_A2DP_CODEC_CHANNEL_MODE_NONE;
        break;
 diff --git a/system/stack/a2dp/a2dp_vendor_opus.cc b/system/stack/a2dp/a2dp_vendor_opus.cc
-index 845310d..9e985cf 100644
+index 70377d8..4efa7d2 100644
 --- a/system/stack/a2dp/a2dp_vendor_opus.cc
 +++ b/system/stack/a2dp/a2dp_vendor_opus.cc
 @@ -819,6 +819,9 @@ static bool select_audio_channel_mode(const btav_a2dp_codec_config_t* p_codec_au
@@ -240,5 +240,5 @@ index 845310d..9e985cf 100644
        codec_config_.channel_mode = BTAV_A2DP_CODEC_CHANNEL_MODE_NONE;
        break;
 -- 
-2.48.1
+2.53.0
 
