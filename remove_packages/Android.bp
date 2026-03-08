@@ -2,10 +2,7 @@ cc_prebuilt_binary {
     name: "RemovePackagesGinkgo",
     overrides: [
         "AndroidAutoStubPrebuilt",
-        "Flipendo",
-        "GoogleFeedback",
-        // Remove LineageOS calendar app (Etar)
-        "Etar",
+        "Flipendo"
     ],
     strip: {
         none: true,

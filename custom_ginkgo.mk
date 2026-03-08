@@ -8,21 +8,11 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
-# Inherit some common Lineage stuff.
-$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
+# Inherit some common PixelOS stuff.
+$(call inherit-product, vendor/custom/config/common_full_phone.mk)
 
 # Inherit from ginkgo device
 $(call inherit-product, device/xiaomi/ginkgo/device.mk)
-
-# Gapps support
-WITH_GMS ?= false
-
-ifeq ($(WITH_GMS),true)
-# Inherit from GMS product config
-$(call inherit-product-if-exists, vendor/google/gms/config.mk)
-$(call inherit-product-if-exists, vendor/google/pixel/config.mk)
-$(call inherit-product-if-exists, vendor/google/gms-extras/config.mk)
-endif
 
 # Retrofit
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
@@ -32,7 +22,7 @@ $(call soong_config_set,camera,package_name,com.android.camera)
 TARGET_USES_MIUI_CAMERA := true
 TARGET_INCLUDES_MIUI_CAMERA := true
 
-PRODUCT_NAME := lineage_ginkgo
+PRODUCT_NAME := custom_ginkgo
 PRODUCT_DEVICE := ginkgo
 PRODUCT_MANUFACTURER := Xiaomi
 PRODUCT_BRAND := Xiaomi
