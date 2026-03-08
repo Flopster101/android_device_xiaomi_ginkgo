@@ -1,41 +1,39 @@
-From 1e82aabe824e865acbb20f8a02e8612403873f3e Mon Sep 17 00:00:00 2001
-From: LuK1337 <priv.luk@gmail.com>
-Date: Sat, 27 Sep 2025 17:46:03 -0300
+From 81f387164b1c532781aeeceb1a2d2616d2accd49 Mon Sep 17 00:00:00 2001
+From: Flopster101 <nahuelgomez329@gmail.com>
+Date: Sun, 8 Mar 2026 10:21:39 -0300
 Subject: [PATCH] Settings: Add Maintainer string into device info
 
-Change-Id: I4acf834442712954f8e9db15370bffafd4547174
-Signed-off-by: Ksawlii <ksawery.blaszczak@proton.me>
-Signed-off-by: mytja <mytja@proton.me>
-[Flopster101: Made more generic and A16 QPR1-compatible.]
-Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
+Change-Id: Idd942c4d5ccc75c9cdc456008dbb3251bdcb5a88
 ---
- res/values/cm_strings.xml                     |  4 ++
- res/xml/firmware_version.xml                  |  7 +++
- .../BuildMaintainerPreference.kt              | 49 +++++++++++++++++++
- .../BuildMaintainerPreferenceController.java  | 38 ++++++++++++++
+ res/values/strings.xml                        |  4 ++
+ res/xml/firmware_version.xml                  |  8 +++
+ .../BuildMaintainerPreference.kt              | 51 +++++++++++++++++++
+ .../BuildMaintainerPreferenceController.java  | 46 +++++++++++++++++
  .../firmwareversion/FirmwareVersionScreen.kt  |  1 +
- 5 files changed, 99 insertions(+)
+ 5 files changed, 110 insertions(+)
  create mode 100644 src/com/android/settings/deviceinfo/firmwareversion/BuildMaintainerPreference.kt
  create mode 100644 src/com/android/settings/deviceinfo/firmwareversion/BuildMaintainerPreferenceController.java
 
-diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
-index 38966af..916ca8b 100644
---- a/res/values/cm_strings.xml
-+++ b/res/values/cm_strings.xml
-@@ -185,4 +185,8 @@
-     <string name="battery_maximum_capacity">Maximum capacity</string>
-     <string name="battery_maximum_capacity_summary">%1$d mAh (%2$d%%)</string>
-     <string name="battery_maximum_capacity_not_available" translatable="false">@string/battery_cycle_count_not_available</string>
-+
-+    <!-- Android version screen, build maintainer -->
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 3e49820..2c594e3 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -3627,6 +3627,10 @@
+     <string name="kernel_version">Kernel version</string>
+     <!-- About phone screen,  setting option name  [CHAR LIMIT=40] -->
+     <string name="build_number">Build number</string>
++    <!-- About phone screen, status item label [CHAR LIMIT=40] -->
 +    <string name="build_maintainer">Maintainer</string>
++    <!-- About phone screen, status item summary [CHAR LIMIT=NONE] -->
 +    <string name="build_maintainer_summary" translatable="false">UNKNOWN</string>
- </resources>
+     <!-- About phone screen, tapping this button will take user to a seperate UI to check Google Play system update [CHAR LIMIT=60] -->
+     <string name="module_version">Google Play system update</string>
+     <!-- About phone screen, show a list of battery information  [CHAR LIMIT=60] -->
 diff --git a/res/xml/firmware_version.xml b/res/xml/firmware_version.xml
-index 6d5439c..1222d23 100644
+index 41f7733..23d4e4d 100644
 --- a/res/xml/firmware_version.xml
 +++ b/res/xml/firmware_version.xml
-@@ -44,6 +44,13 @@
+@@ -30,6 +30,14 @@
          settings:searchable="false"
          settings:controller="com.android.settings.deviceinfo.firmwareversion.FirmwareVersionDetailPreferenceController"/>
  
@@ -46,17 +44,18 @@ index 6d5439c..1222d23 100644
 +        android:summary="@string/summary_placeholder"
 +        settings:enableCopying="true"
 +        settings:controller="com.android.settings.deviceinfo.firmwareversion.BuildMaintainerPreferenceController"/>
++
      <!-- Security patch -->
      <Preference
          android:key="security_key"
 diff --git a/src/com/android/settings/deviceinfo/firmwareversion/BuildMaintainerPreference.kt b/src/com/android/settings/deviceinfo/firmwareversion/BuildMaintainerPreference.kt
 new file mode 100644
-index 0000000..86925af
+index 0000000..4d64307
 --- /dev/null
 +++ b/src/com/android/settings/deviceinfo/firmwareversion/BuildMaintainerPreference.kt
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,51 @@
 +/*
-+ * Copyright (C) 2025 The LineageOS Project
++ * Copyright (C) 2026 The PixelOS Project
 + *
 + * Licensed under the Apache License, Version 2.0 (the "License");
 + * you may not use this file except in compliance with the License.
@@ -80,6 +79,7 @@ index 0000000..86925af
 +import com.android.settingslib.metadata.PreferenceSummaryProvider
 +import com.android.settingslib.preference.PreferenceBinding
 +
++// LINT.IfChange
 +class BuildMaintainerPreference :
 +    PreferenceMetadata, PreferenceSummaryProvider, PreferenceBinding {
 +
@@ -89,30 +89,42 @@ index 0000000..86925af
 +    override val title: Int
 +        get() = R.string.build_maintainer
 +
++    override val indexable
++        get() = false
++
 +    override fun bind(preference: Preference, metadata: PreferenceMetadata) {
 +        super.bind(preference, metadata)
 +        preference.isSelectable = false
 +        preference.isCopyingEnabled = true
 +    }
 +
-+    override fun getSummary(context: Context): CharSequence? {
-+        val fromRes = context.getString(R.string.build_maintainer_summary).trim()
-+        return if (fromRes.isEmpty() || fromRes.equals("UNKNOWN", ignoreCase = true)) {
-+            context.getString(R.string.unknown)
-+        } else {
-+            fromRes
-+        }
-+    }
++    override fun getSummary(context: Context): CharSequence =
++        context.getString(R.string.build_maintainer_summary)
++            .trim()
++            .ifEmpty { context.getString(R.string.unknown) }
++            .let { if (it.equals("UNKNOWN", ignoreCase = true)) context.getString(R.string.unknown) else it }
 +}
++// LINT.ThenChange(BuildMaintainerPreferenceController.java)
 diff --git a/src/com/android/settings/deviceinfo/firmwareversion/BuildMaintainerPreferenceController.java b/src/com/android/settings/deviceinfo/firmwareversion/BuildMaintainerPreferenceController.java
 new file mode 100644
-index 0000000..0ed464c
+index 0000000..0c58591
 --- /dev/null
 +++ b/src/com/android/settings/deviceinfo/firmwareversion/BuildMaintainerPreferenceController.java
-@@ -0,0 +1,38 @@
+@@ -0,0 +1,46 @@
 +/*
-+ * Copyright (C) 2024 The LineageOS Project
-+ * SPDX-License-Identifier: Apache-2.0
++ * Copyright (C) 2026 The PixelOS Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
 + */
 +
 +package com.android.settings.deviceinfo.firmwareversion;
@@ -120,46 +132,43 @@ index 0000000..0ed464c
 +import android.content.Context;
 +import android.text.TextUtils;
 +
-+import androidx.preference.Preference;
-+
 +import com.android.settings.R;
 +import com.android.settings.core.BasePreferenceController;
 +
++// LINT.IfChange
 +public class BuildMaintainerPreferenceController extends BasePreferenceController {
-+
-+    private String mDeviceMaintainer;
 +
 +    public BuildMaintainerPreferenceController(Context context, String key) {
 +        super(context, key);
-+        String maintainer = mContext.getResources().getString(R.string.build_maintainer_summary);
-+        if (TextUtils.isEmpty(maintainer) || maintainer.equalsIgnoreCase("UNKNOWN")) {
-+            maintainer = mContext.getString(R.string.unknown);
-+        }
-+        mDeviceMaintainer = maintainer;
 +    }
 +
 +    @Override
 +    public int getAvailabilityStatus() {
-+        return AVAILABLE;
++        return AVAILABLE_UNSEARCHABLE;
 +    }
 +
 +    @Override
 +    public CharSequence getSummary() {
-+        return mDeviceMaintainer;
++        String maintainer = mContext.getString(R.string.build_maintainer_summary);
++        if (TextUtils.isEmpty(maintainer) || "UNKNOWN".equalsIgnoreCase(maintainer.trim())) {
++            return mContext.getString(R.string.unknown);
++        }
++        return maintainer.trim();
 +    }
 +}
++// LINT.ThenChange(BuildMaintainerPreference.kt)
 diff --git a/src/com/android/settings/deviceinfo/firmwareversion/FirmwareVersionScreen.kt b/src/com/android/settings/deviceinfo/firmwareversion/FirmwareVersionScreen.kt
-index 27b3052..ca725e0 100644
+index c587725..36c5230 100644
 --- a/src/com/android/settings/deviceinfo/firmwareversion/FirmwareVersionScreen.kt
 +++ b/src/com/android/settings/deviceinfo/firmwareversion/FirmwareVersionScreen.kt
-@@ -73,6 +73,7 @@ open class FirmwareVersionScreen : PreferenceScreenMixin, PreferenceSummaryProvi
-             +AboutDeviceNamePreference()
+@@ -70,6 +70,7 @@ open class FirmwareVersionScreen : PreferenceScreenMixin, PreferenceSummaryProvi
+     override fun getPreferenceHierarchy(context: Context, coroutineScope: CoroutineScope) =
+         preferenceHierarchy(context) {
              +FirmwareVersionDetailPreference()
-             +LineageVersionDetailPreference()
 +            +BuildMaintainerPreference()
              +SecurityPatchLevelPreference()
-             +LineageVendorSecurityPatchLevelPreference()
              +MainlineModuleVersionPreference()
+             +BasebandVersionPreference()
 -- 
-2.48.1
+2.53.0
 

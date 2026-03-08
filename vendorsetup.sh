@@ -2,7 +2,7 @@
 SCRIPTS_ROOT="$(realpath device/xiaomi/ginkgo)"
 
 echo "-> Checking for Settings patches to apply..."
-if ! grep -q "build_maintainer" "packages/apps/Settings/res/values/cm_strings.xml"; then
+if [ -f "packages/apps/Settings/res/values/strings.xml" ] && ! grep -q "build_maintainer" "packages/apps/Settings/res/values/strings.xml"; then
   (
     cd "packages/apps/Settings"
     git am -3 "$SCRIPTS_ROOT/patches/Settings/0001-Settings-Add-Maintainer-string-into-device-info.patch"
