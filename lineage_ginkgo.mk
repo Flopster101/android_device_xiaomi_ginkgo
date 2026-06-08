@@ -26,6 +26,9 @@ endif
 # Retrofit
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
+# Lunaris
+PRODUCT_SYSTEM_PROPERTIES += ro.lunaris.maintainer=Flopster101
+
 # MIUI camera support
 $(call soong_config_set,camera,package_name,com.android.camera)
 TARGET_USES_MIUI_CAMERA := true
