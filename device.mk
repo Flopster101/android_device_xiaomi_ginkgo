@@ -78,7 +78,8 @@ DEVICE_PACKAGE_OVERLAYS += \
 
 PRODUCT_PACKAGES += \
     ApertureGinkgo \
-    LineageSDKGinkgo
+    LineageSDKGinkgo \
+    GinkgoSettingsRes
 
 # Parts
 PRODUCT_PACKAGES += \
