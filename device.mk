@@ -32,6 +32,9 @@ TARGET_SCREEN_WIDTH := 1080
 # Fastboot
 TARGET_BOARD_FASTBOOT_INFO_FILE := $(DEVICE_PATH)/fastboot-info.txt
 
+# FM
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/configs/fm/fm_srch_af_th.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/fm_srch_af_th.conf
+
 # Rootdir
 PRODUCT_PACKAGES += \
     fstab.qcom \
