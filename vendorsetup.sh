@@ -42,3 +42,11 @@ if [ "$SKIP_SBC_HD_PATCHES" != "1" ]; then
 else
   echo "-> Skipping SBC HD patches (SKIP_SBC_HD_PATCHES=1)"
 fi
+
+echo "-> Checking for HWC patches to apply..."
+if ! grep -q "Layer \*l = layer_stack->layers.at(i);" "hardware/qcom-caf/sm8150/display/sdm/libs/core/display_base.cpp"; then
+  (
+    cd hardware/qcom-caf/sm8150/display
+    git am -3 "$SCRIPTS_ROOT/patches/hwc/0001-sdm-clamp-source-crop-to-buffer-dimensions.patch"
+  )
+fi

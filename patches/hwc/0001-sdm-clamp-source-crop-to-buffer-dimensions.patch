@@ -1,0 +1,43 @@
+From 0259bb04e9ab531e6f1c9f8d0652ca9bf574c6bb Mon Sep 17 00:00:00 2001
+From: Flopster101 <nahuelgomez329@gmail.com>
+Date: Tue, 16 Jun 2026 20:02:23 -0300
+Subject: [PATCH] sdm: clamp source crop to buffer dimensions
+
+SurfaceFlinger may pass stale source crops for cached layers
+where the buffer is a small tile (e.g. 1088x80) but the source
+crop is full-screen (1080x2340). This triggers a QSEED3 ROI
+validation failure in the proprietary scalar library with
+status=2, spamming logcat every frame.
+
+Clamp each layer's source rect boundaries to fit within its
+buffer dimensions before composition to prevent out-of-bounds
+ROI from being passed to the hardware scalar.
+
+Change-Id: I3fd3d6ba590b2ef80872bbcab585a4c96304ec3f
+Signed-off-by: Flopster101 <nahuelgomez329@gmail.com>
+---
+ sdm/libs/core/display_base.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/sdm/libs/core/display_base.cpp b/sdm/libs/core/display_base.cpp
+index 6187a4b..4bc7780 100755
+--- a/sdm/libs/core/display_base.cpp
++++ b/sdm/libs/core/display_base.cpp
+@@ -300,6 +300,14 @@ DisplayError DisplayBase::Prepare(LayerStack *layer_stack) {
+     return error;
+   }
+ 
++  for (uint32_t i = 0; i < layer_stack->layers.size(); i++) {
++    Layer *l = layer_stack->layers.at(i);
++    if (l->src_rect.right > l->input_buffer.width)
++      l->src_rect.right = l->input_buffer.width;
++    if (l->src_rect.bottom > l->input_buffer.height)
++      l->src_rect.bottom = l->input_buffer.height;
++  }
++
+   if (color_mgr_ && color_mgr_->NeedsPartialUpdateDisable()) {
+     DisablePartialUpdateOneFrame();
+   }
+-- 
+2.54.0
+
